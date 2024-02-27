@@ -1,5 +1,5 @@
 ---
-title: "Visual exploration of duplicated genes across the Eukarya tree of life"
+title: "Supplementary Text S4: Visual exploration of duplicated genes across the Eukarya tree of life"
 author:
 - name: Fabricio Almeida-Silva
   affiliation: |
@@ -12,7 +12,7 @@ author:
 output:
   BiocStyle::pdf_document
 vignette: |
-  %\VignetteIndexEntry{Visual exploration of duplicated genes across the Eukarya tree of life}
+  %\VignetteIndexEntry{Supplementary Text S4}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -291,7 +291,7 @@ p_duplicates_all_ensembl <- wrap_plots(
     plot_layout(axis_titles = "collect")
 ```
 
-```{r fig.height=10, fig.width=16, eval = TRUE}
+```{r fig.height=14, fig.width=16, eval = TRUE}
 p_duplicates_all_ensembl
 ```
 

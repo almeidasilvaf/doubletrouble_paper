@@ -6,3 +6,4 @@
 /_book/
 products/result_files/*duplicates*
 products/result_files/collinearity/
+code/*.log

@@ -1,5 +1,5 @@
 ---
-title: "Identification and classification of duplicated genes in Ensembl and Ensembl Genomes"
+title: "Supplementary Text S2: Identification and classification of duplicated genes in Ensembl and Ensembl Genomes"
 author:
 - name: Fabricio Almeida-Silva
   affiliation: |
@@ -12,7 +12,7 @@ author:
 output:
   BiocStyle::pdf_document
 vignette: |
-  %\VignetteIndexEntry{Identification and classification of duplicated in Ensembl Genomes}
+  %\VignetteIndexEntry{Supplementary Text S2}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

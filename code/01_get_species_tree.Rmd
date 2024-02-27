@@ -1,5 +1,5 @@
 ---
-title: "Obtaining species trees for Ensembl instances"
+title: "Supplementary Text S1: Obtaining species trees for Ensembl instances"
 author:
 - name: Fabricio Almeida-Silva
   affiliation: |
@@ -12,7 +12,7 @@ author:
 output:
   BiocStyle::pdf_document
 vignette: |
-  %\VignetteIndexEntry{Identification and classification of duplicated in Ensembl Genomes}
+  %\VignetteIndexEntry{Supplementary Text S1:}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
