@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.550">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Code and data for “doubletrouble: an R/Bioconductor package for the identification, classification, and analyses of gene and genome duplications” - 3&nbsp; Calculating substitution rates for selected Ensembl genomes</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../chapters/chapter_04.html" rel="next">
+<link href="../chapters/chapter_02.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="nav-sidebar floating">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/chapter_03.html"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Calculating substitution rates for selected Ensembl genomes</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../">Code and data for “doubletrouble: an R/Bioconductor package for the identification, classification, and analyses of gene and genome duplications”</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/chapter_01.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Obtaining species trees for Ensembl instances</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/chapter_02.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Identification and classification of duplicated genes in Ensembl and Ensembl Genomes</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/chapter_03.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Calculating substitution rates for selected Ensembl genomes</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/chapter_04.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Visual exploration of duplicated genes across the Eukarya tree of life</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/chapter_05.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Runtime benchmark</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/appendices.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Appendices</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#data-loading" id="toc-data-loading" class="nav-link active" data-scroll-target="#data-loading"><span class="header-section-number">3.1</span> Data loading</a></li>
+  <li><a href="#calculating-substitution-rates" id="toc-calculating-substitution-rates" class="nav-link" data-scroll-target="#calculating-substitution-rates"><span class="header-section-number">3.2</span> Calculating substitution rates</a></li>
+  <li><a href="#session-info" id="toc-session-info" class="nav-link" data-scroll-target="#session-info">Session info</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Calculating substitution rates for selected Ensembl genomes</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>Here, we will describe the code to calculate substitution rates for selected genomes in Ensembl and Ensembl Genomes instances using the Bioconductor package <em><a href="https://bioconductor.org/packages/3.18/doubletrouble">doubletrouble</a></em>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(syntenet)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(doubletrouble)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(BiocParallel)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>) <span class="co"># for reproducibility</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">timeout =</span> <span class="fl">1e10</span>) <span class="co"># to allow download of big files</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Load helper functions</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="fu">here</span>(<span class="st">"code"</span>, <span class="st">"utils.R"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="data-loading" class="level2" data-number="3.1">
+<h2 data-number="3.1" class="anchored" data-anchor-id="data-loading"><span class="header-section-number">3.1</span> Data loading</h2>
+<p>Here, we will load the data frames of species metadata and the lists of duplicated gene pairs for each Ensembl instance.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load metadata</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"result_files"</span>, <span class="st">"metadata_all.rda"</span>))</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Load duplicates</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"result_files"</span>, <span class="st">"fungi_duplicates.rda"</span>))</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"result_files"</span>, <span class="st">"plants_duplicates.rda"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="calculating-substitution-rates" class="level2" data-number="3.2">
+<h2 data-number="3.2" class="anchored" data-anchor-id="calculating-substitution-rates"><span class="header-section-number">3.2</span> Calculating substitution rates</h2>
+<p>Next, we will calculate substitution rates (<span class="math inline">\(K_a\)</span>, <span class="math inline">\(K_s\)</span>, and <span class="math inline">\(K_a/K_s\)</span>) for duplicate pairs in all selected species, namely:</p>
+<ol type="1">
+<li><p>Three fungi species (<em>Saccharomyces cerevisiae</em>, <em>Candida glabrata</em>, and <em>Schizosaccharomyces pombe</em>).</p></li>
+<li><p>Four legume species (<em>Glycine max</em>, <em>Phaseolus vulgaris</em>, <em>Vitis vinifera</em>, <em>Selaginella moellendorffii</em>).</p></li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fungi - S. cerevisiae, Candida glabrata, and Schizosaccharomyces pombe</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="do">## Download CDS</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>selected_fungi <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"saccharomyces_cerevisiae"</span>, <span class="st">"candida_glabrata"</span>, <span class="st">"schizosaccharomyces_pombe"</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>fungi_cds <span class="ot">&lt;-</span> <span class="fu">get_cds_ensembl</span>(selected_fungi, <span class="at">ensembl =</span> <span class="st">"fungi"</span>)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="do">## Calculate substitution rates</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>fungi_kaks <span class="ot">&lt;-</span> <span class="fu">pairs2kaks</span>(</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">gene_pairs_list =</span> fungi_duplicates[selected_fungi],</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">cds =</span> fungi_cds,</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">bp_param =</span> BiocParallel<span class="sc">::</span><span class="fu">SnowParam</span>(<span class="at">workers =</span> <span class="dv">8</span>)</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Plants - Glycine max, Phaseolus vulgaris, Vitis vinifera, and Selaginella moellendorffii</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="do">## Download CDS</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>selected_plants <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">"glycine_max"</span>, <span class="st">"phaseolus_vulgaris"</span>, <span class="st">"vitis_vinifera"</span>, </span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    <span class="st">"selaginella_moellendorffii"</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>plants_cds <span class="ot">&lt;-</span> <span class="fu">get_cds_ensembl</span>(selected_plants, <span class="at">ensembl =</span> <span class="st">"plants"</span>)</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="do">## Calculate substitution rates</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>plants_duplicates <span class="ot">&lt;-</span> plants_duplicates[selected_plants]</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>plants_kaks <span class="ot">&lt;-</span> <span class="fu">pairs2kaks</span>(</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">gene_pairs_list =</span> plants_duplicates,</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">cds =</span> plants_cds,</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">bp_param =</span> BiocParallel<span class="sc">::</span><span class="fu">SnowParam</span>(<span class="at">workers =</span> <span class="dv">8</span>)</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Saving objects as .rda files:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    fungi_kaks, <span class="at">compress =</span> <span class="st">"xz"</span>,</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">file =</span> <span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"result_files"</span>, <span class="st">"fungi_kaks.rda"</span>)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    plants_kaks, <span class="at">compress =</span> <span class="st">"xz"</span>,</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">file =</span> <span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"result_files"</span>, <span class="st">"plants_kaks.rda"</span>)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="session-info" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="session-info">Session info</h2>
+<p>This document was created under the following conditions:</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>─ Session info ───────────────────────────────────────────────────────────────
+ setting  value
+ version  R version 4.3.2 (2023-10-31)
+ os       Ubuntu 22.04.3 LTS
+ system   x86_64, linux-gnu
+ ui       X11
+ language (EN)
+ collate  en_US.UTF-8
+ ctype    en_US.UTF-8
+ tz       Europe/Brussels
+ date     2024-02-27
+ pandoc   3.1.1 @ /usr/lib/rstudio/resources/app/bin/quarto/bin/tools/ (via rmarkdown)
+
+─ Packages ───────────────────────────────────────────────────────────────────
+ package              * version     date (UTC) lib source
+ abind                  1.4-5       2016-07-21 [1] CRAN (R 4.3.2)
+ ade4                   1.7-22      2023-02-06 [1] CRAN (R 4.3.2)
+ AnnotationDbi          1.64.1      2023-11-03 [1] Bioconductor
+ ape                    5.7-1       2023-03-13 [1] CRAN (R 4.3.2)
+ Biobase                2.62.0      2023-10-24 [1] Bioconductor
+ BiocFileCache          2.10.1      2023-10-26 [1] Bioconductor
+ BiocGenerics           0.48.1      2023-11-01 [1] Bioconductor
+ BiocIO                 1.12.0      2023-10-24 [1] Bioconductor
+ BiocManager            1.30.22     2023-08-08 [1] CRAN (R 4.3.2)
+ BiocParallel         * 1.37.0      2024-01-19 [1] Github (Bioconductor/BiocParallel@79a1b2d)
+ BiocStyle              2.30.0      2023-10-24 [1] Bioconductor
+ biomaRt                2.58.2      2024-01-30 [1] Bioconductor 3.18 (R 4.3.2)
+ Biostrings             2.70.2      2024-01-28 [1] Bioconductor 3.18 (R 4.3.2)
+ bit                    4.0.5       2022-11-15 [1] CRAN (R 4.3.2)
+ bit64                  4.0.5       2020-08-30 [1] CRAN (R 4.3.2)
+ bitops                 1.0-7       2021-04-24 [1] CRAN (R 4.3.2)
+ blob                   1.2.4       2023-03-17 [1] CRAN (R 4.3.2)
+ cachem                 1.0.8       2023-05-01 [1] CRAN (R 4.3.2)
+ cli                    3.6.2       2023-12-11 [1] CRAN (R 4.3.2)
+ coda                   0.19-4.1    2024-01-31 [1] CRAN (R 4.3.2)
+ codetools              0.2-19      2023-02-01 [4] CRAN (R 4.2.2)
+ colorspace             2.1-0       2023-01-23 [1] CRAN (R 4.3.2)
+ crayon                 1.5.2       2022-09-29 [1] CRAN (R 4.3.2)
+ curl                   5.2.0       2023-12-08 [1] CRAN (R 4.3.2)
+ DBI                    1.2.1       2024-01-12 [1] CRAN (R 4.3.2)
+ dbplyr                 2.4.0       2023-10-26 [1] CRAN (R 4.3.2)
+ DelayedArray           0.28.0      2023-10-24 [1] Bioconductor
+ digest                 0.6.34      2024-01-11 [1] CRAN (R 4.3.2)
+ doParallel             1.0.17      2022-02-07 [1] CRAN (R 4.3.2)
+ doubletrouble        * 1.3.4       2024-02-05 [1] Bioconductor
+ dplyr                * 1.1.4       2023-11-17 [1] CRAN (R 4.3.2)
+ evaluate               0.23        2023-11-01 [1] CRAN (R 4.3.2)
+ fansi                  1.0.6       2023-12-08 [1] CRAN (R 4.3.2)
+ fastmap                1.1.1       2023-02-24 [1] CRAN (R 4.3.2)
+ filelock               1.0.3       2023-12-11 [1] CRAN (R 4.3.2)
+ forcats              * 1.0.0       2023-01-29 [1] CRAN (R 4.3.2)
+ foreach                1.5.2       2022-02-02 [1] CRAN (R 4.3.2)
+ generics               0.1.3       2022-07-05 [1] CRAN (R 4.3.2)
+ GenomeInfoDb           1.38.6      2024-02-08 [1] Bioconductor 3.18 (R 4.3.2)
+ GenomeInfoDbData       1.2.11      2023-12-21 [1] Bioconductor
+ GenomicAlignments      1.38.2      2024-01-16 [1] Bioconductor 3.18 (R 4.3.2)
+ GenomicFeatures        1.54.3      2024-01-31 [1] Bioconductor 3.18 (R 4.3.2)
+ GenomicRanges          1.54.1      2023-10-29 [1] Bioconductor
+ ggnetwork              0.5.13      2024-02-14 [1] CRAN (R 4.3.2)
+ ggplot2              * 3.4.4       2023-10-12 [1] CRAN (R 4.3.2)
+ glue                   1.7.0       2024-01-09 [1] CRAN (R 4.3.2)
+ gtable                 0.3.4       2023-08-21 [1] CRAN (R 4.3.2)
+ here                 * 1.0.1       2020-12-13 [1] CRAN (R 4.3.2)
+ hms                    1.1.3       2023-03-21 [1] CRAN (R 4.3.2)
+ htmltools              0.5.7       2023-11-03 [1] CRAN (R 4.3.2)
+ htmlwidgets            1.6.4       2023-12-06 [1] CRAN (R 4.3.2)
+ httr                   1.4.7       2023-08-15 [1] CRAN (R 4.3.2)
+ igraph                 2.0.1.1     2024-01-30 [1] CRAN (R 4.3.2)
+ intergraph             2.0-4       2024-02-01 [1] CRAN (R 4.3.2)
+ IRanges                2.36.0      2023-10-24 [1] Bioconductor
+ iterators              1.0.14      2022-02-05 [1] CRAN (R 4.3.2)
+ jsonlite               1.8.8       2023-12-04 [1] CRAN (R 4.3.2)
+ KEGGREST               1.42.0      2023-10-24 [1] Bioconductor
+ knitr                  1.45        2023-10-30 [1] CRAN (R 4.3.2)
+ lattice                0.22-5      2023-10-24 [4] CRAN (R 4.3.1)
+ lifecycle              1.0.4       2023-11-07 [1] CRAN (R 4.3.2)
+ lubridate            * 1.9.3       2023-09-27 [1] CRAN (R 4.3.2)
+ magrittr               2.0.3       2022-03-30 [1] CRAN (R 4.3.2)
+ MASS                   7.3-60      2023-05-04 [4] CRAN (R 4.3.1)
+ Matrix                 1.6-3       2023-11-14 [4] CRAN (R 4.3.2)
+ MatrixGenerics         1.14.0      2023-10-24 [1] Bioconductor
+ matrixStats            1.2.0       2023-12-11 [1] CRAN (R 4.3.2)
+ mclust                 6.0.1       2023-11-15 [1] CRAN (R 4.3.2)
+ memoise                2.0.1       2021-11-26 [1] CRAN (R 4.3.2)
+ MSA2dist               1.6.0       2023-10-24 [1] Bioconductor
+ munsell                0.5.0       2018-06-12 [1] CRAN (R 4.3.2)
+ network                1.18.2      2023-12-05 [1] CRAN (R 4.3.2)
+ networkD3              0.4         2017-03-18 [1] CRAN (R 4.3.2)
+ nlme                   3.1-163     2023-08-09 [4] CRAN (R 4.3.1)
+ pheatmap               1.0.12      2019-01-04 [1] CRAN (R 4.3.2)
+ pillar                 1.9.0       2023-03-22 [1] CRAN (R 4.3.2)
+ pkgconfig              2.0.3       2019-09-22 [1] CRAN (R 4.3.2)
+ png                    0.1-8       2022-11-29 [1] CRAN (R 4.3.2)
+ prettyunits            1.2.0       2023-09-24 [1] CRAN (R 4.3.2)
+ progress               1.2.3       2023-12-06 [1] CRAN (R 4.3.2)
+ purrr                * 1.0.2       2023-08-10 [1] CRAN (R 4.3.2)
+ R6                     2.5.1       2021-08-19 [1] CRAN (R 4.3.2)
+ rappdirs               0.3.3       2021-01-31 [1] CRAN (R 4.3.2)
+ RColorBrewer           1.1-3       2022-04-03 [1] CRAN (R 4.3.2)
+ Rcpp                   1.0.12      2024-01-09 [1] CRAN (R 4.3.2)
+ RCurl                  1.98-1.14   2024-01-09 [1] CRAN (R 4.3.2)
+ readr                * 2.1.5       2024-01-10 [1] CRAN (R 4.3.2)
+ restfulr               0.0.15      2022-06-16 [1] CRAN (R 4.3.2)
+ rjson                  0.2.21      2022-01-09 [1] CRAN (R 4.3.2)
+ rlang                  1.1.3       2024-01-10 [1] CRAN (R 4.3.2)
+ rmarkdown              2.25        2023-09-18 [1] CRAN (R 4.3.2)
+ rprojroot              2.0.4       2023-11-05 [1] CRAN (R 4.3.2)
+ Rsamtools              2.18.0      2023-10-24 [1] Bioconductor
+ RSQLite                2.3.5       2024-01-21 [1] CRAN (R 4.3.2)
+ rstudioapi             0.15.0      2023-07-07 [1] CRAN (R 4.3.2)
+ rtracklayer            1.62.0      2023-10-24 [1] Bioconductor
+ S4Arrays               1.2.0       2023-10-24 [1] Bioconductor
+ S4Vectors              0.40.2      2023-11-23 [1] Bioconductor 3.18 (R 4.3.2)
+ scales                 1.3.0       2023-11-28 [1] CRAN (R 4.3.2)
+ seqinr                 4.2-36      2023-12-08 [1] CRAN (R 4.3.2)
+ sessioninfo            1.2.2       2021-12-06 [1] CRAN (R 4.3.2)
+ SparseArray            1.2.4       2024-02-11 [1] Bioconductor 3.18 (R 4.3.2)
+ statnet.common         4.9.0       2023-05-24 [1] CRAN (R 4.3.2)
+ stringi                1.8.3       2023-12-11 [1] CRAN (R 4.3.2)
+ stringr              * 1.5.1       2023-11-14 [1] CRAN (R 4.3.2)
+ SummarizedExperiment   1.32.0      2023-10-24 [1] Bioconductor
+ syntenet             * 1.4.0       2023-10-24 [1] Bioconductor
+ tibble               * 3.2.1       2023-03-20 [1] CRAN (R 4.3.2)
+ tidyr                * 1.3.1       2024-01-24 [1] CRAN (R 4.3.2)
+ tidyselect             1.2.0       2022-10-10 [1] CRAN (R 4.3.2)
+ tidyverse            * 2.0.0       2023-02-22 [1] CRAN (R 4.3.2)
+ timechange             0.3.0       2024-01-18 [1] CRAN (R 4.3.2)
+ tzdb                   0.4.0       2023-05-12 [1] CRAN (R 4.3.2)
+ utf8                   1.2.4       2023-10-22 [1] CRAN (R 4.3.2)
+ vctrs                  0.6.5       2023-12-01 [1] CRAN (R 4.3.2)
+ withr                  3.0.0       2024-01-16 [1] CRAN (R 4.3.2)
+ xfun                   0.42        2024-02-08 [1] CRAN (R 4.3.2)
+ XML                    3.99-0.16.1 2024-01-22 [1] CRAN (R 4.3.2)
+ xml2                   1.3.6       2023-12-04 [1] CRAN (R 4.3.2)
+ XVector                0.42.0      2023-10-24 [1] Bioconductor
+ yaml                   2.3.8       2023-12-11 [1] CRAN (R 4.3.2)
+ zlibbioc               1.48.0      2023-10-24 [1] Bioconductor
+
+ [1] /home/faalm/R/x86_64-pc-linux-gnu-library/4.3
+ [2] /usr/local/lib/R/site-library
+ [3] /usr/lib/R/site-library
+ [4] /usr/lib/R/library
+
+──────────────────────────────────────────────────────────────────────────────</code></pre>
+</div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../chapters/chapter_02.html" class="pagination-link" aria-label="Identification and classification of duplicated genes in Ensembl and Ensembl Genomes">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Identification and classification of duplicated genes in Ensembl and Ensembl Genomes</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../chapters/chapter_04.html" class="pagination-link" aria-label="Visual exploration of duplicated genes across the Eukarya tree of life">
+        <span class="nav-page-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Visual exploration of duplicated genes across the Eukarya tree of life</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

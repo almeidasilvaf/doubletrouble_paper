@@ -1,0 +1,2260 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.550">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Code and data for “doubletrouble: an R/Bioconductor package for the identification, classification, and analyses of gene and genome duplications” - 4&nbsp; Visual exploration of duplicated genes across the Eukarya tree of life</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../chapters/chapter_05.html" rel="next">
+<link href="../chapters/chapter_03.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="nav-sidebar floating">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/chapter_04.html"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Visual exploration of duplicated genes across the Eukarya tree of life</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../">Code and data for “doubletrouble: an R/Bioconductor package for the identification, classification, and analyses of gene and genome duplications”</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/chapter_01.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Obtaining species trees for Ensembl instances</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/chapter_02.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Identification and classification of duplicated genes in Ensembl and Ensembl Genomes</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/chapter_03.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Calculating substitution rates for selected Ensembl genomes</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/chapter_04.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Visual exploration of duplicated genes across the Eukarya tree of life</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/chapter_05.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Runtime benchmark</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/appendices.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Appendices</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#loading-data" id="toc-loading-data" class="nav-link active" data-scroll-target="#loading-data"><span class="header-section-number">4.1</span> Loading data</a></li>
+  <li><a href="#visualizing-the-frequency-of-duplicated-genes-by-mode" id="toc-visualizing-the-frequency-of-duplicated-genes-by-mode" class="nav-link" data-scroll-target="#visualizing-the-frequency-of-duplicated-genes-by-mode"><span class="header-section-number">4.2</span> Visualizing the frequency of duplicated genes by mode</a></li>
+  <li><a href="#busco-scores" id="toc-busco-scores" class="nav-link" data-scroll-target="#busco-scores"><span class="header-section-number">4.3</span> BUSCO scores</a></li>
+  <li><a href="#visualizing-substitution-rates-for-selected-plant-species" id="toc-visualizing-substitution-rates-for-selected-plant-species" class="nav-link" data-scroll-target="#visualizing-substitution-rates-for-selected-plant-species"><span class="header-section-number">4.4</span> Visualizing substitution rates for selected plant species</a></li>
+  <li><a href="#saving-objects" id="toc-saving-objects" class="nav-link" data-scroll-target="#saving-objects">Saving objects</a></li>
+  <li><a href="#session-info" id="toc-session-info" class="nav-link" data-scroll-target="#session-info">Session info</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Visual exploration of duplicated genes across the Eukarya tree of life</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>Here, we will describe the code to perform exploratory data analyses on the duplicated gene frequencies in genomes from Ensembl instances.</p>
+<p>To start, let’s load the required data and packages.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>) <span class="co"># for reproducibility</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Load required packages</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(doubletrouble)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggtree)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(patchwork)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="fu">here</span>(<span class="st">"code"</span>, <span class="st">"utils.R"</span>))</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="fu">here</span>(<span class="st">"code"</span>, <span class="st">"utils_visualization.R"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="loading-data" class="level2" data-number="4.1">
+<h2 data-number="4.1" class="anchored" data-anchor-id="loading-data"><span class="header-section-number">4.1</span> Loading data</h2>
+<p>First, we will load object the same list of metadata we’ve been using in other chapters.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load metadata</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"result_files"</span>, <span class="st">"metadata_all.rda"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We will also need objects generated in previous chapters, namely:</p>
+<ol type="1">
+<li>Species trees</li>
+<li>Duplicates per species (genes and gene pairs)</li>
+<li>BUSCO scores for genomes in each instance</li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load BUSCO scores</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"result_files"</span>, <span class="st">"busco_scores"</span>, <span class="st">"fungi_busco_scores.rda"</span>))</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"result_files"</span>, <span class="st">"busco_scores"</span>, <span class="st">"protists_busco_scores.rda"</span>))</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"result_files"</span>, <span class="st">"busco_scores"</span>, <span class="st">"plants_busco_scores.rda"</span>))</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"result_files"</span>, <span class="st">"busco_scores"</span>, <span class="st">"metazoa_busco_scores.rda"</span>))</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"result_files"</span>, <span class="st">"busco_scores"</span>, <span class="st">"vertebrates_busco_scores.rda"</span>))</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Load trees</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"result_files"</span>, <span class="st">"trees"</span>, <span class="st">"fungi_busco_trees.rda"</span>))</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"result_files"</span>, <span class="st">"trees"</span>, <span class="st">"protists_busco_trees.rda"</span>))</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"result_files"</span>, <span class="st">"trees"</span>, <span class="st">"plants_busco_trees.rda"</span>))</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"result_files"</span>, <span class="st">"trees"</span>, <span class="st">"metazoa_busco_trees.rda"</span>))</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"result_files"</span>, <span class="st">"trees"</span>, <span class="st">"vertebrates_busco_trees.rda"</span>))</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Load duplicated genes</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"result_files"</span>, <span class="st">"fungi_duplicates_unique.rda"</span>))</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"result_files"</span>, <span class="st">"protists_duplicates_unique.rda"</span>))</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"result_files"</span>, <span class="st">"plants_duplicates_unique.rda"</span>))</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"result_files"</span>, <span class="st">"vertebrates_duplicates_unique.rda"</span>))</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"result_files"</span>, <span class="st">"metazoa_duplicates_unique.rda"</span>))</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Load substitution rates for plants</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"result_files"</span>, <span class="st">"plants_kaks.rda"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="visualizing-the-frequency-of-duplicated-genes-by-mode" class="level2" data-number="4.2">
+<h2 data-number="4.2" class="anchored" data-anchor-id="visualizing-the-frequency-of-duplicated-genes-by-mode"><span class="header-section-number">4.2</span> Visualizing the frequency of duplicated genes by mode</h2>
+<p>Now, we will visualize the frequency of duplicated genes by mode for each species. For that, we will first convert the list of duplicates into a long-formatted data frame, and clean tip labels in our species trees.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Rename tip labels of trees</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>tree_fungi <span class="ot">&lt;-</span> fungi_busco_trees<span class="sc">$</span>conc</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>tree_fungi<span class="sc">$</span>tip.label <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">"</span><span class="sc">\\</span><span class="st">."</span>, <span class="st">"_"</span>, tree_fungi<span class="sc">$</span>tip.label)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>tree_protists <span class="ot">&lt;-</span> protists_busco_trees<span class="sc">$</span>conc</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>tree_protists<span class="sc">$</span>tip.label <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">"</span><span class="sc">\\</span><span class="st">."</span>, <span class="st">"_"</span>, tree_protists<span class="sc">$</span>tip.label)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>tree_plants <span class="ot">&lt;-</span> plants_busco_trees<span class="sc">$</span>conc</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>tree_plants<span class="sc">$</span>tip.label <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">"</span><span class="sc">\\</span><span class="st">."</span>, <span class="st">"_"</span>, tree_plants<span class="sc">$</span>tip.label)</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>tree_metazoa <span class="ot">&lt;-</span> metazoa_busco_trees<span class="sc">$</span>conc</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>tree_metazoa<span class="sc">$</span>tip.label <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">"</span><span class="sc">\\</span><span class="st">."</span>, <span class="st">"_"</span>, tree_metazoa<span class="sc">$</span>tip.label)</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>tree_vertebrates <span class="ot">&lt;-</span> vertebrates_busco_trees<span class="sc">$</span>conc</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>tree_vertebrates<span class="sc">$</span>tip.label <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">"</span><span class="sc">\\</span><span class="st">."</span>, <span class="st">"_"</span>, tree_vertebrates<span class="sc">$</span>tip.label)</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Get count tables</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>counts_fungi <span class="ot">&lt;-</span> <span class="fu">duplicates2counts</span>(fungi_duplicates_unique)</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>counts_protists <span class="ot">&lt;-</span> <span class="fu">duplicates2counts</span>(protists_duplicates_unique)</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>counts_plants <span class="ot">&lt;-</span> <span class="fu">duplicates2counts</span>(plants_duplicates_unique)</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>counts_vertebrates <span class="ot">&lt;-</span> <span class="fu">duplicates2counts</span>(vertebrates_duplicates_unique)</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>counts_metazoa <span class="ot">&lt;-</span> <span class="fu">duplicates2counts</span>(metazoa_duplicates_unique)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Now, we will plot the trees with data for each Ensembl instance.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fungi</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>p_fungi_tree <span class="ot">&lt;-</span> <span class="fu">plot_tree_taxa</span>(</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">tree =</span> tree_fungi, </span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">metadata =</span> metadata_all<span class="sc">$</span>fungi, </span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">taxon =</span> <span class="st">"phylum"</span>,</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">text_size =</span> <span class="fl">2.5</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>p_fungi <span class="ot">&lt;-</span> <span class="fu">wrap_plots</span>(</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Plot 1: Species tree</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    p_fungi_tree,</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Plot 2: Duplicate relative frequency by mode</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot_duplicate_freqs</span>(</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>        counts_fungi <span class="sc">|&gt;</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>            <span class="fu">mutate</span>(</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>                <span class="at">species =</span> <span class="fu">factor</span>(species, <span class="at">levels =</span> <span class="fu">rev</span>(<span class="fu">get_taxa_name</span>(p_fungi_tree)))</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>            ),</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot_type =</span> <span class="st">"stack_percent"</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>        <span class="fu">theme</span>(</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>            <span class="at">axis.text.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>            <span class="at">axis.ticks.y =</span> <span class="fu">element_blank</span>()</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>        ) <span class="sc">+</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>        <span class="fu">labs</span>(<span class="at">y =</span> <span class="cn">NULL</span>),</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">widths =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">4</span>)</span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot_annotation</span>(<span class="at">title =</span> <span class="st">"Fungi"</span>) <span class="sc">&amp;</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">plot.margin =</span> <span class="fu">margin</span>(<span class="dv">2</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">2</span>))</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a><span class="co"># Protists</span></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>p_protists_tree <span class="ot">&lt;-</span> <span class="fu">plot_tree_taxa</span>(</span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>    <span class="at">tree =</span> tree_protists, </span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">metadata =</span> metadata_all<span class="sc">$</span>protists <span class="sc">|&gt;</span></span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>        <span class="fu">filter</span>(phylum <span class="sc">!=</span> <span class="st">"Evosea"</span>), </span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>    <span class="at">taxon =</span> <span class="st">"phylum"</span>, </span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>    <span class="at">min_n_lab =</span> <span class="dv">2</span>,</span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">padding_text =</span> <span class="fl">0.2</span>,</span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>    <span class="at">text_size =</span> <span class="fl">2.5</span></span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>p_protists <span class="ot">&lt;-</span> <span class="fu">wrap_plots</span>(</span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Plot 1: Species tree</span></span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>    p_protists_tree,</span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Plot 2: Duplicate relative frequency by mode</span></span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot_duplicate_freqs</span>(</span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a>        counts_protists <span class="sc">|&gt;</span></span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>            <span class="fu">mutate</span>(</span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a>                <span class="at">species =</span> <span class="fu">factor</span>(species, <span class="at">levels =</span> <span class="fu">rev</span>(<span class="fu">get_taxa_name</span>(p_protists_tree)))</span>
+<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a>            ),</span>
+<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot_type =</span> <span class="st">"stack_percent"</span>) <span class="sc">+</span></span>
+<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a>        <span class="fu">theme</span>(</span>
+<span id="cb5-51"><a href="#cb5-51" aria-hidden="true" tabindex="-1"></a>            <span class="at">axis.text.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb5-52"><a href="#cb5-52" aria-hidden="true" tabindex="-1"></a>            <span class="at">axis.ticks.y =</span> <span class="fu">element_blank</span>()</span>
+<span id="cb5-53"><a href="#cb5-53" aria-hidden="true" tabindex="-1"></a>        ) <span class="sc">+</span></span>
+<span id="cb5-54"><a href="#cb5-54" aria-hidden="true" tabindex="-1"></a>        <span class="fu">labs</span>(<span class="at">y =</span> <span class="cn">NULL</span>),</span>
+<span id="cb5-55"><a href="#cb5-55" aria-hidden="true" tabindex="-1"></a>    <span class="at">widths =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">4</span>)</span>
+<span id="cb5-56"><a href="#cb5-56" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb5-57"><a href="#cb5-57" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot_annotation</span>(<span class="at">title =</span> <span class="st">"Protists"</span>) <span class="sc">&amp;</span></span>
+<span id="cb5-58"><a href="#cb5-58" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">plot.margin =</span> <span class="fu">margin</span>(<span class="dv">2</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">2</span>))</span>
+<span id="cb5-59"><a href="#cb5-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-60"><a href="#cb5-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-61"><a href="#cb5-61" aria-hidden="true" tabindex="-1"></a><span class="co"># Plants</span></span>
+<span id="cb5-62"><a href="#cb5-62" aria-hidden="true" tabindex="-1"></a>p_plants_tree <span class="ot">&lt;-</span> <span class="fu">plot_tree_taxa</span>(</span>
+<span id="cb5-63"><a href="#cb5-63" aria-hidden="true" tabindex="-1"></a>    <span class="at">tree =</span> tree_plants, </span>
+<span id="cb5-64"><a href="#cb5-64" aria-hidden="true" tabindex="-1"></a>    <span class="at">metadata =</span> metadata_all<span class="sc">$</span>plants, </span>
+<span id="cb5-65"><a href="#cb5-65" aria-hidden="true" tabindex="-1"></a>    <span class="at">taxon =</span> <span class="st">"order"</span>, </span>
+<span id="cb5-66"><a href="#cb5-66" aria-hidden="true" tabindex="-1"></a>    <span class="at">min_n_lab =</span> <span class="dv">3</span>,</span>
+<span id="cb5-67"><a href="#cb5-67" aria-hidden="true" tabindex="-1"></a>    <span class="at">text_size =</span> <span class="fl">2.5</span></span>
+<span id="cb5-68"><a href="#cb5-68" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-69"><a href="#cb5-69" aria-hidden="true" tabindex="-1"></a>p_plants <span class="ot">&lt;-</span> <span class="fu">wrap_plots</span>(</span>
+<span id="cb5-70"><a href="#cb5-70" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Plot 1: Species tree</span></span>
+<span id="cb5-71"><a href="#cb5-71" aria-hidden="true" tabindex="-1"></a>    p_plants_tree,</span>
+<span id="cb5-72"><a href="#cb5-72" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Plot 2: Duplicate relative frequency by mode</span></span>
+<span id="cb5-73"><a href="#cb5-73" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot_duplicate_freqs</span>(</span>
+<span id="cb5-74"><a href="#cb5-74" aria-hidden="true" tabindex="-1"></a>        counts_plants <span class="sc">|&gt;</span></span>
+<span id="cb5-75"><a href="#cb5-75" aria-hidden="true" tabindex="-1"></a>            <span class="fu">mutate</span>(</span>
+<span id="cb5-76"><a href="#cb5-76" aria-hidden="true" tabindex="-1"></a>                <span class="at">species =</span> <span class="fu">factor</span>(species, <span class="at">levels =</span> <span class="fu">rev</span>(<span class="fu">get_taxa_name</span>(p_plants_tree)))</span>
+<span id="cb5-77"><a href="#cb5-77" aria-hidden="true" tabindex="-1"></a>            ),</span>
+<span id="cb5-78"><a href="#cb5-78" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot_type =</span> <span class="st">"stack_percent"</span>) <span class="sc">+</span></span>
+<span id="cb5-79"><a href="#cb5-79" aria-hidden="true" tabindex="-1"></a>        <span class="fu">theme</span>(</span>
+<span id="cb5-80"><a href="#cb5-80" aria-hidden="true" tabindex="-1"></a>            <span class="at">axis.text.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb5-81"><a href="#cb5-81" aria-hidden="true" tabindex="-1"></a>            <span class="at">axis.ticks.y =</span> <span class="fu">element_blank</span>()</span>
+<span id="cb5-82"><a href="#cb5-82" aria-hidden="true" tabindex="-1"></a>        ) <span class="sc">+</span></span>
+<span id="cb5-83"><a href="#cb5-83" aria-hidden="true" tabindex="-1"></a>        <span class="fu">labs</span>(<span class="at">y =</span> <span class="cn">NULL</span>),</span>
+<span id="cb5-84"><a href="#cb5-84" aria-hidden="true" tabindex="-1"></a>    <span class="at">widths =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">4</span>)</span>
+<span id="cb5-85"><a href="#cb5-85" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb5-86"><a href="#cb5-86" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot_annotation</span>(<span class="at">title =</span> <span class="st">"Plants"</span>) <span class="sc">&amp;</span></span>
+<span id="cb5-87"><a href="#cb5-87" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">plot.margin =</span> <span class="fu">margin</span>(<span class="dv">2</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">2</span>))</span>
+<span id="cb5-88"><a href="#cb5-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-89"><a href="#cb5-89" aria-hidden="true" tabindex="-1"></a><span class="co"># Metazoa</span></span>
+<span id="cb5-90"><a href="#cb5-90" aria-hidden="true" tabindex="-1"></a>p_metazoa_tree <span class="ot">&lt;-</span> <span class="fu">plot_tree_taxa</span>(</span>
+<span id="cb5-91"><a href="#cb5-91" aria-hidden="true" tabindex="-1"></a>    <span class="at">tree =</span> tree_metazoa, </span>
+<span id="cb5-92"><a href="#cb5-92" aria-hidden="true" tabindex="-1"></a>    <span class="at">metadata =</span> metadata_all<span class="sc">$</span>metazoa <span class="sc">|&gt;</span></span>
+<span id="cb5-93"><a href="#cb5-93" aria-hidden="true" tabindex="-1"></a>        <span class="fu">filter</span>(class <span class="sc">!=</span> <span class="st">"Myxozoa"</span>), </span>
+<span id="cb5-94"><a href="#cb5-94" aria-hidden="true" tabindex="-1"></a>    <span class="at">taxon =</span> <span class="st">"phylum"</span>, </span>
+<span id="cb5-95"><a href="#cb5-95" aria-hidden="true" tabindex="-1"></a>    <span class="at">min_n =</span> <span class="dv">2</span>, </span>
+<span id="cb5-96"><a href="#cb5-96" aria-hidden="true" tabindex="-1"></a>    <span class="at">text_size =</span> <span class="fl">2.2</span>, </span>
+<span id="cb5-97"><a href="#cb5-97" aria-hidden="true" tabindex="-1"></a>    <span class="at">padding_text =</span> <span class="dv">2</span></span>
+<span id="cb5-98"><a href="#cb5-98" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-99"><a href="#cb5-99" aria-hidden="true" tabindex="-1"></a>p_metazoa <span class="ot">&lt;-</span> <span class="fu">wrap_plots</span>(</span>
+<span id="cb5-100"><a href="#cb5-100" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Plot 1: Species tree</span></span>
+<span id="cb5-101"><a href="#cb5-101" aria-hidden="true" tabindex="-1"></a>    p_metazoa_tree,</span>
+<span id="cb5-102"><a href="#cb5-102" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Plot 2: Duplicate relative frequency by mode</span></span>
+<span id="cb5-103"><a href="#cb5-103" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot_duplicate_freqs</span>(</span>
+<span id="cb5-104"><a href="#cb5-104" aria-hidden="true" tabindex="-1"></a>        counts_metazoa <span class="sc">|&gt;</span></span>
+<span id="cb5-105"><a href="#cb5-105" aria-hidden="true" tabindex="-1"></a>            <span class="fu">mutate</span>(</span>
+<span id="cb5-106"><a href="#cb5-106" aria-hidden="true" tabindex="-1"></a>                <span class="at">species =</span> <span class="fu">factor</span>(species, <span class="at">levels =</span> <span class="fu">rev</span>(<span class="fu">get_taxa_name</span>(p_metazoa_tree)))</span>
+<span id="cb5-107"><a href="#cb5-107" aria-hidden="true" tabindex="-1"></a>            ),</span>
+<span id="cb5-108"><a href="#cb5-108" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot_type =</span> <span class="st">"stack_percent"</span>) <span class="sc">+</span></span>
+<span id="cb5-109"><a href="#cb5-109" aria-hidden="true" tabindex="-1"></a>        <span class="fu">theme</span>(</span>
+<span id="cb5-110"><a href="#cb5-110" aria-hidden="true" tabindex="-1"></a>            <span class="at">axis.text.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb5-111"><a href="#cb5-111" aria-hidden="true" tabindex="-1"></a>            <span class="at">axis.ticks.y =</span> <span class="fu">element_blank</span>()</span>
+<span id="cb5-112"><a href="#cb5-112" aria-hidden="true" tabindex="-1"></a>        ) <span class="sc">+</span></span>
+<span id="cb5-113"><a href="#cb5-113" aria-hidden="true" tabindex="-1"></a>        <span class="fu">labs</span>(<span class="at">y =</span> <span class="cn">NULL</span>),</span>
+<span id="cb5-114"><a href="#cb5-114" aria-hidden="true" tabindex="-1"></a>    <span class="at">widths =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">4</span>) </span>
+<span id="cb5-115"><a href="#cb5-115" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb5-116"><a href="#cb5-116" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot_annotation</span>(<span class="at">title =</span> <span class="st">"Metazoa"</span>) <span class="sc">&amp;</span></span>
+<span id="cb5-117"><a href="#cb5-117" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">plot.margin =</span> <span class="fu">margin</span>(<span class="dv">2</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">2</span>))</span>
+<span id="cb5-118"><a href="#cb5-118" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-119"><a href="#cb5-119" aria-hidden="true" tabindex="-1"></a><span class="co"># Vertebrates</span></span>
+<span id="cb5-120"><a href="#cb5-120" aria-hidden="true" tabindex="-1"></a>p_vertebrates_tree <span class="ot">&lt;-</span> <span class="fu">plot_tree_taxa</span>(</span>
+<span id="cb5-121"><a href="#cb5-121" aria-hidden="true" tabindex="-1"></a>    <span class="at">tree =</span> tree_vertebrates, </span>
+<span id="cb5-122"><a href="#cb5-122" aria-hidden="true" tabindex="-1"></a>    <span class="at">metadata =</span> metadata_all<span class="sc">$</span>ensembl <span class="sc">|&gt;</span></span>
+<span id="cb5-123"><a href="#cb5-123" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mutate</span>(<span class="at">class =</span> <span class="fu">replace_na</span>(class, <span class="st">"Other"</span>)), </span>
+<span id="cb5-124"><a href="#cb5-124" aria-hidden="true" tabindex="-1"></a>    <span class="at">taxon =</span> <span class="st">"class"</span>, </span>
+<span id="cb5-125"><a href="#cb5-125" aria-hidden="true" tabindex="-1"></a>    <span class="at">min_n =</span> <span class="dv">2</span>, </span>
+<span id="cb5-126"><a href="#cb5-126" aria-hidden="true" tabindex="-1"></a>    <span class="at">text_size =</span> <span class="fl">2.5</span></span>
+<span id="cb5-127"><a href="#cb5-127" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-128"><a href="#cb5-128" aria-hidden="true" tabindex="-1"></a>p_vertebrates <span class="ot">&lt;-</span> <span class="fu">wrap_plots</span>(</span>
+<span id="cb5-129"><a href="#cb5-129" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Plot 1: Species tree</span></span>
+<span id="cb5-130"><a href="#cb5-130" aria-hidden="true" tabindex="-1"></a>    p_vertebrates_tree,</span>
+<span id="cb5-131"><a href="#cb5-131" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Plot 2: Duplicate relative frequency by mode</span></span>
+<span id="cb5-132"><a href="#cb5-132" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot_duplicate_freqs</span>(</span>
+<span id="cb5-133"><a href="#cb5-133" aria-hidden="true" tabindex="-1"></a>        counts_vertebrates <span class="sc">|&gt;</span></span>
+<span id="cb5-134"><a href="#cb5-134" aria-hidden="true" tabindex="-1"></a>            <span class="fu">mutate</span>(</span>
+<span id="cb5-135"><a href="#cb5-135" aria-hidden="true" tabindex="-1"></a>                <span class="at">species =</span> <span class="fu">factor</span>(species, <span class="at">levels =</span> <span class="fu">rev</span>(<span class="fu">get_taxa_name</span>(p_vertebrates_tree)))</span>
+<span id="cb5-136"><a href="#cb5-136" aria-hidden="true" tabindex="-1"></a>            ),</span>
+<span id="cb5-137"><a href="#cb5-137" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot_type =</span> <span class="st">"stack_percent"</span>) <span class="sc">+</span></span>
+<span id="cb5-138"><a href="#cb5-138" aria-hidden="true" tabindex="-1"></a>        <span class="fu">theme</span>(</span>
+<span id="cb5-139"><a href="#cb5-139" aria-hidden="true" tabindex="-1"></a>            <span class="at">axis.text.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb5-140"><a href="#cb5-140" aria-hidden="true" tabindex="-1"></a>            <span class="at">axis.ticks.y =</span> <span class="fu">element_blank</span>()</span>
+<span id="cb5-141"><a href="#cb5-141" aria-hidden="true" tabindex="-1"></a>        ) <span class="sc">+</span></span>
+<span id="cb5-142"><a href="#cb5-142" aria-hidden="true" tabindex="-1"></a>        <span class="fu">labs</span>(<span class="at">y =</span> <span class="cn">NULL</span>),</span>
+<span id="cb5-143"><a href="#cb5-143" aria-hidden="true" tabindex="-1"></a>    <span class="at">widths =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">4</span>)</span>
+<span id="cb5-144"><a href="#cb5-144" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb5-145"><a href="#cb5-145" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot_annotation</span>(<span class="at">title =</span> <span class="st">"Vertebrates"</span>) <span class="sc">&amp;</span></span>
+<span id="cb5-146"><a href="#cb5-146" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">plot.margin =</span> <span class="fu">margin</span>(<span class="dv">2</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">2</span>))</span>
+<span id="cb5-147"><a href="#cb5-147" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-148"><a href="#cb5-148" aria-hidden="true" tabindex="-1"></a><span class="co"># Combining all figures into one</span></span>
+<span id="cb5-149"><a href="#cb5-149" aria-hidden="true" tabindex="-1"></a>p_duplicates_all_ensembl <span class="ot">&lt;-</span> <span class="fu">wrap_plots</span>(</span>
+<span id="cb5-150"><a href="#cb5-150" aria-hidden="true" tabindex="-1"></a>    <span class="fu">wrap_plots</span>(</span>
+<span id="cb5-151"><a href="#cb5-151" aria-hidden="true" tabindex="-1"></a>        p_protists <span class="sc">+</span> </span>
+<span id="cb5-152"><a href="#cb5-152" aria-hidden="true" tabindex="-1"></a>            <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>) <span class="sc">+</span> </span>
+<span id="cb5-153"><a href="#cb5-153" aria-hidden="true" tabindex="-1"></a>            <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Protists"</span>, <span class="at">x =</span> <span class="cn">NULL</span>), </span>
+<span id="cb5-154"><a href="#cb5-154" aria-hidden="true" tabindex="-1"></a>        p_fungi <span class="sc">+</span> </span>
+<span id="cb5-155"><a href="#cb5-155" aria-hidden="true" tabindex="-1"></a>            <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
+<span id="cb5-156"><a href="#cb5-156" aria-hidden="true" tabindex="-1"></a>            <span class="fu">ggtitle</span>(<span class="st">"Fungi"</span>),</span>
+<span id="cb5-157"><a href="#cb5-157" aria-hidden="true" tabindex="-1"></a>        <span class="at">nrow =</span> <span class="dv">2</span>, <span class="at">heights =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>)</span>
+<span id="cb5-158"><a href="#cb5-158" aria-hidden="true" tabindex="-1"></a>    ), </span>
+<span id="cb5-159"><a href="#cb5-159" aria-hidden="true" tabindex="-1"></a>    p_plants <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>) <span class="sc">+</span> <span class="fu">ggtitle</span>(<span class="st">"Plants"</span>), </span>
+<span id="cb5-160"><a href="#cb5-160" aria-hidden="true" tabindex="-1"></a>    p_metazoa <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>) <span class="sc">+</span> <span class="fu">ggtitle</span>(<span class="st">"Metazoa (Invertebrates)"</span>), </span>
+<span id="cb5-161"><a href="#cb5-161" aria-hidden="true" tabindex="-1"></a>    p_vertebrates <span class="sc">+</span> <span class="fu">ggtitle</span>(<span class="st">"Ensembl (Vertebrates)"</span>), </span>
+<span id="cb5-162"><a href="#cb5-162" aria-hidden="true" tabindex="-1"></a>    <span class="at">nrow =</span> <span class="dv">1</span></span>
+<span id="cb5-163"><a href="#cb5-163" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb5-164"><a href="#cb5-164" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot_layout</span>(<span class="at">axis_titles =</span> <span class="st">"collect"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>p_duplicates_all_ensembl</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="chapter_04_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="1536"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>By visually comparing the Ensembl instances, we can see that plant genomes have a much greater abundance of segmental duplicates, possibly due to pervasive whole-genome duplication events. However, other major branches of the Eukarya tree of life also have particular species with a high proportion of SD-derived genes. Notably, while SD events are widespread in plants, vertebrate species with high proportions of SD-derived genes are concentrated in a particular branch (teleost fishes). To investigate that, we will highlight species for which at least 20% of the duplicated genes derived from segmental duplications.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># For each Ensembl instance, show species with &gt;=20% of genes derived from SD</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="do">## Define helper function</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>sd_abundant <span class="ot">&lt;-</span> <span class="cf">function</span>(count_table, <span class="at">min =</span> <span class="dv">20</span>) {</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    perc_table <span class="ot">&lt;-</span> count_table <span class="sc">|&gt;</span> </span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">group_by</span>(species) <span class="sc">|&gt;</span> </span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mutate</span>(<span class="at">percentage =</span> (n <span class="sc">/</span> <span class="fu">sum</span>(n)) <span class="sc">*</span> <span class="dv">100</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>        <span class="fu">ungroup</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">filter</span>(type <span class="sc">==</span> <span class="st">"SD"</span>, percentage <span class="sc">&gt;=</span> min)</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(perc_table)</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Get a table of SD-abundant species for each instance</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>sd_abundant_spp <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sd_abundant</span>(counts_fungi) <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">instance =</span> <span class="st">"fungi"</span>),</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sd_abundant</span>(counts_protists) <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">instance =</span> <span class="st">"protists"</span>),</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sd_abundant</span>(counts_plants) <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">instance =</span> <span class="st">"plants"</span>),</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sd_abundant</span>(counts_vertebrates) <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">instance =</span> <span class="st">"vertebrates"</span>),</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sd_abundant</span>(counts_metazoa) <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">instance =</span> <span class="st">"metazoa"</span>)</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.data.frame</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Then, let’s summarize the frequencies (absolute and relative) in a table.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># How many species per instance?</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>sd_abundant_spp <span class="sc">|&gt;</span> </span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">count</span>(instance) <span class="sc">|&gt;</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">percentage =</span> n <span class="sc">/</span> <span class="fu">c</span>(</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nrow</span>(metadata_all<span class="sc">$</span>fungi),</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nrow</span>(metadata_all<span class="sc">$</span>metazoa),</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nrow</span>(metadata_all<span class="sc">$</span>plants),</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nrow</span>(metadata_all<span class="sc">$</span>protists),</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>            <span class="fu">nrow</span>(metadata_all<span class="sc">$</span>ensembl)</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>        ) <span class="sc">*</span> <span class="dv">100</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     instance  n percentage
+1       fungi  2   2.857143
+2     metazoa  7   2.766798
+3      plants 94  63.087248
+4    protists  2   6.060606
+5 vertebrates 21   6.624606</code></pre>
+</div>
+</div>
+<p>Once again, our findings highlight the abundance of large-scale duplications in plant genomes, as segmental duplications contributed to 20% of the duplicated genes in 94 species (63%). Next, let’s print all SD-abundant species.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Show all species</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(sd_abundant_spp)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="table table-sm table-striped small">
+<colgroup>
+<col style="width: 6%">
+<col style="width: 8%">
+<col style="width: 53%">
+<col style="width: 15%">
+<col style="width: 16%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">type</th>
+<th style="text-align: right;">n</th>
+<th style="text-align: left;">species</th>
+<th style="text-align: right;">percentage</th>
+<th style="text-align: left;">instance</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">2138</td>
+<td style="text-align: left;">fusarium_oxysporum</td>
+<td style="text-align: right;">20.16030</td>
+<td style="text-align: left;">fungi</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">683</td>
+<td style="text-align: left;">saccharomyces_cerevisiae</td>
+<td style="text-align: right;">26.16858</td>
+<td style="text-align: left;">fungi</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">14351</td>
+<td style="text-align: left;">emiliania_huxleyi</td>
+<td style="text-align: right;">43.78509</td>
+<td style="text-align: left;">protists</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">27661</td>
+<td style="text-align: left;">paramecium_tetraurelia</td>
+<td style="text-align: right;">79.03369</td>
+<td style="text-align: left;">protists</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">22430</td>
+<td style="text-align: left;">actinidia_chinensis</td>
+<td style="text-align: right;">72.54908</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">4357</td>
+<td style="text-align: left;">ananas_comosus</td>
+<td style="text-align: right;">22.15048</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">5885</td>
+<td style="text-align: left;">arabidopsis_halleri</td>
+<td style="text-align: right;">21.37202</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">7530</td>
+<td style="text-align: left;">arabidopsis_thaliana</td>
+<td style="text-align: right;">33.29796</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">42997</td>
+<td style="text-align: left;">avena_sativa_ot3098</td>
+<td style="text-align: right;">74.43306</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">63492</td>
+<td style="text-align: left;">avena_sativa_sang</td>
+<td style="text-align: right;">79.22833</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">7461</td>
+<td style="text-align: left;">brachypodium_distachyon</td>
+<td style="text-align: right;">27.24285</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">48381</td>
+<td style="text-align: left;">brassica_juncea</td>
+<td style="text-align: right;">69.66407</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">59918</td>
+<td style="text-align: left;">brassica_napus</td>
+<td style="text-align: right;">63.31417</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">24314</td>
+<td style="text-align: left;">brassica_oleracea</td>
+<td style="text-align: right;">44.30232</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">23541</td>
+<td style="text-align: left;">brassica_rapa</td>
+<td style="text-align: right;">62.58907</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">19282</td>
+<td style="text-align: left;">brassica_rapa_ro18</td>
+<td style="text-align: right;">49.29567</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">69355</td>
+<td style="text-align: left;">camelina_sativa</td>
+<td style="text-align: right;">79.45628</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">15785</td>
+<td style="text-align: left;">chenopodium_quinoa</td>
+<td style="text-align: right;">48.57371</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">3600</td>
+<td style="text-align: left;">citrullus_lanatus</td>
+<td style="text-align: right;">22.76608</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">4084</td>
+<td style="text-align: left;">coffea_canephora</td>
+<td style="text-align: right;">20.60545</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">3317</td>
+<td style="text-align: left;">cynara_cardunculus</td>
+<td style="text-align: right;">20.20959</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">41246</td>
+<td style="text-align: left;">digitaria_exilis</td>
+<td style="text-align: right;">75.51999</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">8809</td>
+<td style="text-align: left;">dioscorea_rotundata</td>
+<td style="text-align: right;">32.30764</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">66262</td>
+<td style="text-align: left;">echinochloa_crusgalli</td>
+<td style="text-align: right;">70.97016</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">13447</td>
+<td style="text-align: left;">eragrostis_curvula</td>
+<td style="text-align: right;">27.40650</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">46488</td>
+<td style="text-align: left;">eucalyptus_grandis</td>
+<td style="text-align: right;">75.45773</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">6846</td>
+<td style="text-align: left;">ficus_carica</td>
+<td style="text-align: right;">30.61580</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">6747</td>
+<td style="text-align: left;">galdieria_sulphuraria</td>
+<td style="text-align: right;">25.40573</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">36994</td>
+<td style="text-align: left;">glycine_max</td>
+<td style="text-align: right;">72.19468</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">16290</td>
+<td style="text-align: left;">gossypium_raimondii</td>
+<td style="text-align: right;">48.65882</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">13432</td>
+<td style="text-align: left;">helianthus_annuus</td>
+<td style="text-align: right;">23.21425</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">9537</td>
+<td style="text-align: left;">ipomoea_triloba</td>
+<td style="text-align: right;">35.65100</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">13096</td>
+<td style="text-align: left;">juglans_regia</td>
+<td style="text-align: right;">34.16556</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">7374</td>
+<td style="text-align: left;">kalanchoe_fedtschenkoi</td>
+<td style="text-align: right;">28.37900</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">6757</td>
+<td style="text-align: left;">lactuca_sativa</td>
+<td style="text-align: right;">20.52178</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">5758</td>
+<td style="text-align: left;">leersia_perrieri</td>
+<td style="text-align: right;">25.97321</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">16167</td>
+<td style="text-align: left;">lupinus_angustifolius</td>
+<td style="text-align: right;">54.14448</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">22987</td>
+<td style="text-align: left;">malus_domestica_golden</td>
+<td style="text-align: right;">62.58031</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">14278</td>
+<td style="text-align: left;">manihot_esculenta</td>
+<td style="text-align: right;">52.81693</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">16170</td>
+<td style="text-align: left;">musa_acuminata</td>
+<td style="text-align: right;">54.10017</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">4586</td>
+<td style="text-align: left;">nymphaea_colorata</td>
+<td style="text-align: right;">20.98472</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">5092</td>
+<td style="text-align: left;">oryza_barthii</td>
+<td style="text-align: right;">20.55464</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">5078</td>
+<td style="text-align: left;">oryza_brachyantha</td>
+<td style="text-align: right;">23.83366</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">6054</td>
+<td style="text-align: left;">oryza_glaberrima</td>
+<td style="text-align: right;">23.77567</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">5454</td>
+<td style="text-align: left;">oryza_glumipatula</td>
+<td style="text-align: right;">21.46484</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">5847</td>
+<td style="text-align: left;">oryza_punctata</td>
+<td style="text-align: right;">24.25437</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">5587</td>
+<td style="text-align: left;">oryza_rufipogon</td>
+<td style="text-align: right;">21.24335</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">6096</td>
+<td style="text-align: left;">oryza_sativa</td>
+<td style="text-align: right;">23.94344</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">6136</td>
+<td style="text-align: left;">oryza_sativa_arc</td>
+<td style="text-align: right;">22.25769</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">6139</td>
+<td style="text-align: left;">oryza_sativa_azucena</td>
+<td style="text-align: right;">22.19370</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">6186</td>
+<td style="text-align: left;">oryza_sativa_chaomeo</td>
+<td style="text-align: right;">22.05583</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">6125</td>
+<td style="text-align: left;">oryza_sativa_gobolsailbalam</td>
+<td style="text-align: right;">22.38506</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">6207</td>
+<td style="text-align: left;">oryza_sativa_ir64</td>
+<td style="text-align: right;">22.73876</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">6131</td>
+<td style="text-align: left;">oryza_sativa_ketannangka</td>
+<td style="text-align: right;">22.16238</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">6479</td>
+<td style="text-align: left;">oryza_sativa_khaoyaiguang</td>
+<td style="text-align: right;">23.36964</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">6144</td>
+<td style="text-align: left;">oryza_sativa_larhamugad</td>
+<td style="text-align: right;">22.46107</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">7212</td>
+<td style="text-align: left;">oryza_sativa_lima</td>
+<td style="text-align: right;">25.41584</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">15680</td>
+<td style="text-align: left;">oryza_sativa_liuxu</td>
+<td style="text-align: right;">43.62827</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">6044</td>
+<td style="text-align: left;">oryza_sativa_mh63</td>
+<td style="text-align: right;">22.24512</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">6158</td>
+<td style="text-align: left;">oryza_sativa_n22</td>
+<td style="text-align: right;">22.43270</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">6133</td>
+<td style="text-align: left;">oryza_sativa_natelboro</td>
+<td style="text-align: right;">22.56688</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">6172</td>
+<td style="text-align: left;">oryza_sativa_pr106</td>
+<td style="text-align: right;">22.42896</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">6084</td>
+<td style="text-align: left;">oryza_sativa_zs97</td>
+<td style="text-align: right;">22.69810</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">6182</td>
+<td style="text-align: left;">panicum_hallii</td>
+<td style="text-align: right;">25.04761</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">5920</td>
+<td style="text-align: left;">panicum_hallii_fil2</td>
+<td style="text-align: right;">23.51633</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">19358</td>
+<td style="text-align: left;">papaver_somniferum</td>
+<td style="text-align: right;">53.13169</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">8274</td>
+<td style="text-align: left;">phaseolus_vulgaris</td>
+<td style="text-align: right;">35.38165</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">4494</td>
+<td style="text-align: left;">physcomitrium_patens</td>
+<td style="text-align: right;">20.34221</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">19860</td>
+<td style="text-align: left;">populus_trichocarpa</td>
+<td style="text-align: right;">64.67159</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">4340</td>
+<td style="text-align: left;">prunus_persica</td>
+<td style="text-align: right;">20.51040</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">28231</td>
+<td style="text-align: left;">saccharum_spontaneum</td>
+<td style="text-align: right;">60.01743</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">26322</td>
+<td style="text-align: left;">selaginella_moellendorffii</td>
+<td style="text-align: right;">78.55906</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">8274</td>
+<td style="text-align: left;">sesamum_indicum</td>
+<td style="text-align: right;">40.09887</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">5474</td>
+<td style="text-align: left;">setaria_italica</td>
+<td style="text-align: right;">20.87799</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">5966</td>
+<td style="text-align: left;">setaria_viridis</td>
+<td style="text-align: right;">20.86525</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">6400</td>
+<td style="text-align: left;">solanum_lycopersicum</td>
+<td style="text-align: right;">23.89486</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">5462</td>
+<td style="text-align: left;">sorghum_bicolor</td>
+<td style="text-align: right;">21.38857</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">4707</td>
+<td style="text-align: left;">theobroma_cacao</td>
+<td style="text-align: right;">21.34888</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">4700</td>
+<td style="text-align: left;">theobroma_cacao_criollo</td>
+<td style="text-align: right;">27.23059</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">79033</td>
+<td style="text-align: left;">triticum_aestivum</td>
+<td style="text-align: right;">74.43304</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">84812</td>
+<td style="text-align: left;">triticum_aestivum_arinalrfor</td>
+<td style="text-align: right;">59.47838</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">83573</td>
+<td style="text-align: left;">triticum_aestivum_jagger</td>
+<td style="text-align: right;">60.03419</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">84383</td>
+<td style="text-align: left;">triticum_aestivum_julius</td>
+<td style="text-align: right;">60.38658</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">83838</td>
+<td style="text-align: left;">triticum_aestivum_lancer</td>
+<td style="text-align: right;">60.23148</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">84018</td>
+<td style="text-align: left;">triticum_aestivum_landmark</td>
+<td style="text-align: right;">60.46244</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">83797</td>
+<td style="text-align: left;">triticum_aestivum_mace</td>
+<td style="text-align: right;">60.13290</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">84076</td>
+<td style="text-align: left;">triticum_aestivum_mattis</td>
+<td style="text-align: right;">60.28855</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">85143</td>
+<td style="text-align: left;">triticum_aestivum_norin61</td>
+<td style="text-align: right;">59.19326</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">78393</td>
+<td style="text-align: left;">triticum_aestivum_refseqv2</td>
+<td style="text-align: right;">74.92903</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">71709</td>
+<td style="text-align: left;">triticum_aestivum_renan</td>
+<td style="text-align: right;">72.46554</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">84481</td>
+<td style="text-align: left;">triticum_aestivum_stanley</td>
+<td style="text-align: right;">60.76589</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">39910</td>
+<td style="text-align: left;">triticum_dicoccoides</td>
+<td style="text-align: right;">66.30559</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">79753</td>
+<td style="text-align: left;">triticum_spelta</td>
+<td style="text-align: right;">71.15848</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">40003</td>
+<td style="text-align: left;">triticum_turgidum</td>
+<td style="text-align: right;">61.74827</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">6408</td>
+<td style="text-align: left;">vigna_angularis</td>
+<td style="text-align: right;">22.74437</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">5792</td>
+<td style="text-align: left;">vigna_radiata</td>
+<td style="text-align: right;">31.59503</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">9733</td>
+<td style="text-align: left;">vigna_unguiculata</td>
+<td style="text-align: right;">36.46001</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">12270</td>
+<td style="text-align: left;">zea_mays</td>
+<td style="text-align: right;">36.60283</td>
+<td style="text-align: left;">plants</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">33441</td>
+<td style="text-align: left;">carassius_auratus</td>
+<td style="text-align: right;">63.10337</td>
+<td style="text-align: left;">vertebrates</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">3320</td>
+<td style="text-align: left;">chelydra_serpentina</td>
+<td style="text-align: right;">20.89759</td>
+<td style="text-align: left;">vertebrates</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">32958</td>
+<td style="text-align: left;">cyprinus_carpio_carpio</td>
+<td style="text-align: right;">76.37476</td>
+<td style="text-align: left;">vertebrates</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">32609</td>
+<td style="text-align: left;">cyprinus_carpio_germanmirror</td>
+<td style="text-align: right;">75.35298</td>
+<td style="text-align: left;">vertebrates</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">29145</td>
+<td style="text-align: left;">cyprinus_carpio_hebaored</td>
+<td style="text-align: right;">65.96578</td>
+<td style="text-align: left;">vertebrates</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">31855</td>
+<td style="text-align: left;">cyprinus_carpio_huanghe</td>
+<td style="text-align: right;">72.97322</td>
+<td style="text-align: left;">vertebrates</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">7716</td>
+<td style="text-align: left;">danio_rerio</td>
+<td style="text-align: right;">29.36073</td>
+<td style="text-align: left;">vertebrates</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">4099</td>
+<td style="text-align: left;">esox_lucius</td>
+<td style="text-align: right;">20.63220</td>
+<td style="text-align: left;">vertebrates</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">4039</td>
+<td style="text-align: left;">homo_sapiens</td>
+<td style="text-align: right;">21.22996</td>
+<td style="text-align: left;">vertebrates</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">16593</td>
+<td style="text-align: left;">hucho_hucho</td>
+<td style="text-align: right;">35.39387</td>
+<td style="text-align: left;">vertebrates</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">27413</td>
+<td style="text-align: left;">oncorhynchus_kisutch</td>
+<td style="text-align: right;">67.90775</td>
+<td style="text-align: left;">vertebrates</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">30397</td>
+<td style="text-align: left;">oncorhynchus_mykiss</td>
+<td style="text-align: right;">68.93838</td>
+<td style="text-align: left;">vertebrates</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">27241</td>
+<td style="text-align: left;">oncorhynchus_tshawytscha</td>
+<td style="text-align: right;">68.78519</td>
+<td style="text-align: left;">vertebrates</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">5961</td>
+<td style="text-align: left;">paramormyrops_kingsleyae</td>
+<td style="text-align: right;">29.53183</td>
+<td style="text-align: left;">vertebrates</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">29770</td>
+<td style="text-align: left;">salmo_salar</td>
+<td style="text-align: right;">67.73144</td>
+<td style="text-align: left;">vertebrates</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">30000</td>
+<td style="text-align: left;">salmo_trutta</td>
+<td style="text-align: right;">73.09585</td>
+<td style="text-align: left;">vertebrates</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">8900</td>
+<td style="text-align: left;">scleropages_formosus</td>
+<td style="text-align: right;">44.73936</td>
+<td style="text-align: left;">vertebrates</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">30939</td>
+<td style="text-align: left;">sinocyclocheilus_anshuiensis</td>
+<td style="text-align: right;">73.04169</td>
+<td style="text-align: left;">vertebrates</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">27003</td>
+<td style="text-align: left;">sinocyclocheilus_grahami</td>
+<td style="text-align: right;">63.16048</td>
+<td style="text-align: left;">vertebrates</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">29952</td>
+<td style="text-align: left;">sinocyclocheilus_rhinocerous</td>
+<td style="text-align: right;">68.66260</td>
+<td style="text-align: left;">vertebrates</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">3940</td>
+<td style="text-align: left;">terrapene_carolina_triunguis</td>
+<td style="text-align: right;">22.53231</td>
+<td style="text-align: left;">vertebrates</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">13217</td>
+<td style="text-align: left;">actinia_equina_gca011057435</td>
+<td style="text-align: right;">34.55335</td>
+<td style="text-align: left;">metazoa</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">31761</td>
+<td style="text-align: left;">adineta_vaga</td>
+<td style="text-align: right;">73.23265</td>
+<td style="text-align: left;">metazoa</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">12381</td>
+<td style="text-align: left;">amphibalanus_amphitrite_gca019059575v1</td>
+<td style="text-align: right;">49.10757</td>
+<td style="text-align: left;">metazoa</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">6049</td>
+<td style="text-align: left;">caenorhabditis_brenneri</td>
+<td style="text-align: right;">25.57825</td>
+<td style="text-align: left;">metazoa</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">8823</td>
+<td style="text-align: left;">crassostrea_virginica_gca002022765v4</td>
+<td style="text-align: right;">29.95213</td>
+<td style="text-align: left;">metazoa</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">4261</td>
+<td style="text-align: left;">lytechinus_variegatus_gca018143015v1</td>
+<td style="text-align: right;">24.31384</td>
+<td style="text-align: left;">metazoa</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD</td>
+<td style="text-align: right;">4906</td>
+<td style="text-align: left;">strongylocentrotus_purpuratus</td>
+<td style="text-align: right;">21.82579</td>
+<td style="text-align: left;">metazoa</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="busco-scores" class="level2" data-number="4.3">
+<h2 data-number="4.3" class="anchored" data-anchor-id="busco-scores"><span class="header-section-number">4.3</span> BUSCO scores</h2>
+<p>Next, we will test whether the percentage of segmental duplicates in genomes is associated with the percentage of complete BUSCOs. In other words, we want to find out whether the low percentages of SD gene pairs is due to genome fragmentation.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Define function to plot association between % SD and % complete BUSCOs</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>plot_busco_sd_assoc <span class="ot">&lt;-</span> <span class="cf">function</span>(busco_df, counts_table) {</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    p <span class="ot">&lt;-</span> busco_df <span class="sc">|&gt;</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>        <span class="fu">filter</span>(Class <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Complete_SC"</span>, <span class="st">"Complete_duplicate"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mutate</span>(<span class="at">species =</span> <span class="fu">str_replace_all</span>(File, <span class="st">"</span><span class="sc">\\</span><span class="st">.fa"</span>, <span class="st">""</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mutate</span>(<span class="at">species =</span> <span class="fu">str_replace_all</span>(species, <span class="st">"</span><span class="sc">\\</span><span class="st">."</span>, <span class="st">"_"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>        <span class="fu">group_by</span>(species) <span class="sc">|&gt;</span> </span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">summarise</span>(<span class="at">complete_BUSCOs =</span> <span class="fu">sum</span>(Frequency)) <span class="sc">|&gt;</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">inner_join</span>(<span class="fu">sd_abundant</span>(counts_table, <span class="at">min =</span> <span class="dv">0</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>        ggpubr<span class="sc">::</span><span class="fu">ggscatter</span>(</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>            <span class="at">x =</span> <span class="st">"complete_BUSCOs"</span>, <span class="at">y =</span> <span class="st">"percentage"</span>,</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>            <span class="at">color =</span> <span class="st">"deepskyblue4"</span>, <span class="at">alpha =</span> <span class="fl">0.4</span>,</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>            <span class="at">add =</span> <span class="st">"reg.line"</span>, <span class="at">add.params =</span> <span class="fu">list</span>(</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>                <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">fill =</span> <span class="st">"lightgray"</span></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>            ),</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>            <span class="at">conf.int =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>            <span class="at">cor.coef =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>            <span class="at">cor.coeff.args =</span> <span class="fu">list</span>(</span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>                <span class="at">method =</span> <span class="st">"pearson"</span>, <span class="at">label.x =</span> <span class="dv">3</span>, <span class="at">label.sep =</span> <span class="st">"</span><span class="sc">\n</span><span class="st">"</span></span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>            )</span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>        ) <span class="sc">+</span></span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>        <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"% complete BUSCOs"</span>, <span class="at">y =</span> <span class="st">"% SD duplicates"</span>)</span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(p)</span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a><span class="co"># Fungi</span></span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>p_busco_association <span class="ot">&lt;-</span> patchwork<span class="sc">::</span><span class="fu">wrap_plots</span>(</span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot_busco_sd_assoc</span>(fungi_busco_scores, counts_fungi) <span class="sc">+</span> </span>
+<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a>        <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Fungi"</span>),</span>
+<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot_busco_sd_assoc</span>(plants_busco_scores, counts_plants) <span class="sc">+</span></span>
+<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a>        <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Plants"</span>),</span>
+<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot_busco_sd_assoc</span>(protists_busco_scores, counts_protists) <span class="sc">+</span> </span>
+<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a>        <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Protists"</span>),</span>
+<span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot_busco_sd_assoc</span>(metazoa_busco_scores, counts_metazoa) <span class="sc">+</span></span>
+<span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a>        <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Metazoa"</span>),</span>
+<span id="cb11-38"><a href="#cb11-38" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot_busco_sd_assoc</span>(vertebrates_busco_scores, counts_vertebrates) <span class="sc">+</span></span>
+<span id="cb11-39"><a href="#cb11-39" aria-hidden="true" tabindex="-1"></a>        <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Vertebrates"</span>),</span>
+<span id="cb11-40"><a href="#cb11-40" aria-hidden="true" tabindex="-1"></a>    <span class="at">nrow =</span> <span class="dv">1</span></span>
+<span id="cb11-41"><a href="#cb11-41" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>p_busco_association</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="chapter_04_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="1152"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>There is weak or no association between the percentage of complete BUSCOs and the percentage of SD-derived genes.</p>
+</section>
+<section id="visualizing-substitution-rates-for-selected-plant-species" class="level2" data-number="4.4">
+<h2 data-number="4.4" class="anchored" data-anchor-id="visualizing-substitution-rates-for-selected-plant-species"><span class="header-section-number">4.4</span> Visualizing substitution rates for selected plant species</h2>
+<p>Here, we will first visualize <span class="math inline">\(K_s\)</span> distributions for <em>Glycine max</em> and <em>Phaseolus vulgaris</em> by mode of duplication.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># G. max</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>gmax_ks_distro <span class="ot">&lt;-</span> <span class="fu">plot_ks_distro</span>(</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    plants_kaks<span class="sc">$</span>glycine_max, <span class="at">max_ks =</span> <span class="dv">2</span>, <span class="at">bytype =</span> <span class="cn">TRUE</span>, <span class="at">binwidth =</span> <span class="fl">0.03</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="cn">NULL</span>)</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="co"># P. vulgaris</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>pvu_ks_distro <span class="ot">&lt;-</span> <span class="fu">plot_ks_distro</span>(</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>    plants_kaks<span class="sc">$</span>phaseolus_vulgaris, <span class="at">max_ks =</span> <span class="dv">2</span>, <span class="at">bytype =</span> <span class="cn">TRUE</span>, <span class="at">binwidth =</span> <span class="fl">0.03</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="cn">NULL</span>)</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Combining plots</span></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>p_ks_legumes <span class="ot">&lt;-</span> <span class="fu">wrap_plots</span>(</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>    gmax_ks_distro <span class="sc">+</span> </span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>        <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Glycine max"</span>) <span class="sc">+</span></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>        <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"italic"</span>)), </span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>    pvu_ks_distro <span class="sc">+</span> </span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>        <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Phaseolus vulgaris"</span>) <span class="sc">+</span></span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>        <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"italic"</span>)), </span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">nrow =</span> <span class="dv">1</span></span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>p_ks_legumes</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="chapter_04_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The plot shows the importance of visualizing Ks distributions by mode. When visualizing the whole-paranome distribution, detection of peaks is not trivial, and potential whole-genome duplication events might be masked. When we split the distribution by mode of duplication, we can more easily observe segmental duplicates that cluster together, providing strong evidence for whole-genome duplication events (2 events for <em>G. max</em>, and 1 events for <em>P. vulgaris</em>).</p>
+<p>Next, we will plot the distributions of <span class="math inline">\(K_a\)</span>, <span class="math inline">\(K_s\)</span>, and <span class="math inline">\(K_a/K_s\)</span> values for selected plant species with phylogenetic context.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Subset plant tree to get selected species only</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>tree_subset <span class="ot">&lt;-</span> ape<span class="sc">::</span><span class="fu">keep.tip</span>(tree_plants, <span class="fu">names</span>(plants_kaks))</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Clean names</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(plants_kaks) <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">"_"</span>, <span class="st">" "</span>, <span class="fu">str_to_title</span>(<span class="fu">names</span>(plants_kaks)))</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>tree_subset<span class="sc">$</span>tip.label <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">"_"</span>, <span class="st">" "</span>, <span class="fu">str_to_title</span>(tree_subset<span class="sc">$</span>tip.label))</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot tree</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>p_tree_selected <span class="ot">&lt;-</span> <span class="fu">ggtree</span>(tree_subset, <span class="at">branch.length =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_tiplab</span>(<span class="at">fontface =</span> <span class="st">"italic"</span>, <span class="at">size =</span> <span class="dv">3</span>)</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Reoder rates list based on tree topology</span></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>ord <span class="ot">&lt;-</span> <span class="fu">rev</span>(ggtree<span class="sc">::</span><span class="fu">get_taxa_name</span>(p_tree_selected))</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>rl <span class="ot">&lt;-</span> plants_kaks[ord]</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot rates by species with tree on the left</span></span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>p_rates_phylogeny <span class="ot">&lt;-</span> <span class="fu">wrap_plots</span>(</span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>    p_tree_selected <span class="sc">+</span> <span class="fu">xlim</span>(<span class="dv">0</span>, <span class="dv">10</span>),</span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot_rates_by_species</span>(rl, <span class="at">rate_column =</span> <span class="st">"Ks"</span>, <span class="at">range =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">2</span>)) <span class="sc">+</span></span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>        <span class="fu">theme</span>(</span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a>            <span class="at">axis.text.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a>            <span class="at">axis.ticks.y =</span> <span class="fu">element_blank</span>()</span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a>        ),</span>
+<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot_rates_by_species</span>(</span>
+<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a>        rl, <span class="at">rate_column =</span> <span class="st">"Ka"</span>, <span class="at">range =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">2</span>), </span>
+<span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a>        <span class="at">fill =</span> <span class="st">"mediumseagreen"</span>, <span class="at">color =</span> <span class="st">"seagreen"</span></span>
+<span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a>        <span class="fu">theme</span>(</span>
+<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a>            <span class="at">axis.text.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a>            <span class="at">axis.ticks.y =</span> <span class="fu">element_blank</span>()</span>
+<span id="cb15-31"><a href="#cb15-31" aria-hidden="true" tabindex="-1"></a>        ),</span>
+<span id="cb15-32"><a href="#cb15-32" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot_rates_by_species</span>(</span>
+<span id="cb15-33"><a href="#cb15-33" aria-hidden="true" tabindex="-1"></a>        rl, <span class="at">rate_column =</span> <span class="st">"Ka_Ks"</span>, <span class="at">range =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">2</span>),</span>
+<span id="cb15-34"><a href="#cb15-34" aria-hidden="true" tabindex="-1"></a>        <span class="at">fill =</span> <span class="st">"darkorange2"</span>, <span class="at">color =</span> <span class="st">"darkorange3"</span></span>
+<span id="cb15-35"><a href="#cb15-35" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb15-36"><a href="#cb15-36" aria-hidden="true" tabindex="-1"></a>        <span class="fu">theme</span>(</span>
+<span id="cb15-37"><a href="#cb15-37" aria-hidden="true" tabindex="-1"></a>            <span class="at">axis.text.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb15-38"><a href="#cb15-38" aria-hidden="true" tabindex="-1"></a>            <span class="at">axis.ticks.y =</span> <span class="fu">element_blank</span>()</span>
+<span id="cb15-39"><a href="#cb15-39" aria-hidden="true" tabindex="-1"></a>        ),</span>
+<span id="cb15-40"><a href="#cb15-40" aria-hidden="true" tabindex="-1"></a>    <span class="at">nrow =</span> <span class="dv">1</span></span>
+<span id="cb15-41"><a href="#cb15-41" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb15-42"><a href="#cb15-42" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot_annotation</span>(<span class="at">title =</span> <span class="st">"Substitution rates in a phylogenetic context"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>p_rates_phylogeny</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="chapter_04_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="saving-objects" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="saving-objects">Saving objects</h2>
+<p>Finally, let’s save important objects created in this session for further use.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Save plots for each instance</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    p_fungi, <span class="at">compress =</span> <span class="st">"xz"</span>, </span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">file =</span> <span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"plots"</span>, <span class="st">"p_fungi.rda"</span>)</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>    p_metazoa, <span class="at">compress =</span> <span class="st">"xz"</span>, </span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">file =</span> <span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"plots"</span>, <span class="st">"p_metazoa.rda"</span>)</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(</span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>    p_protists, <span class="at">compress =</span> <span class="st">"xz"</span>, </span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">file =</span> <span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"plots"</span>, <span class="st">"p_protists.rda"</span>)</span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(</span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>    p_vertebrates, <span class="at">compress =</span> <span class="st">"xz"</span>, </span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">file =</span> <span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"plots"</span>, <span class="st">"p_vertebrates.rda"</span>)</span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(</span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a>    p_plants, <span class="at">compress =</span> <span class="st">"xz"</span>, </span>
+<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">file =</span> <span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"plots"</span>, <span class="st">"p_plants.rda"</span>)</span>
+<span id="cb17-25"><a href="#cb17-25" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb17-26"><a href="#cb17-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-27"><a href="#cb17-27" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(</span>
+<span id="cb17-28"><a href="#cb17-28" aria-hidden="true" tabindex="-1"></a>    p_duplicates_all_ensembl, <span class="at">compress =</span> <span class="st">"xz"</span>,</span>
+<span id="cb17-29"><a href="#cb17-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">file =</span> <span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"plots"</span>, <span class="st">"p_duplicates_all_ensembl.rda"</span>)</span>
+<span id="cb17-30"><a href="#cb17-30" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb17-31"><a href="#cb17-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-32"><a href="#cb17-32" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(</span>
+<span id="cb17-33"><a href="#cb17-33" aria-hidden="true" tabindex="-1"></a>    p_ks_legumes, <span class="at">compress =</span> <span class="st">"xz"</span>,</span>
+<span id="cb17-34"><a href="#cb17-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">file =</span> <span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"plots"</span>, <span class="st">"p_ks_legumes.rda"</span>)</span>
+<span id="cb17-35"><a href="#cb17-35" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb17-36"><a href="#cb17-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-37"><a href="#cb17-37" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(</span>
+<span id="cb17-38"><a href="#cb17-38" aria-hidden="true" tabindex="-1"></a>    p_rates_phylogeny, <span class="at">compress =</span> <span class="st">"xz"</span>,</span>
+<span id="cb17-39"><a href="#cb17-39" aria-hidden="true" tabindex="-1"></a>    <span class="at">file =</span> <span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"plots"</span>, <span class="st">"p_rates_phylogeny.rda"</span>)</span>
+<span id="cb17-40"><a href="#cb17-40" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb17-41"><a href="#cb17-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-42"><a href="#cb17-42" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(</span>
+<span id="cb17-43"><a href="#cb17-43" aria-hidden="true" tabindex="-1"></a>    p_busco_association, <span class="at">compress =</span> <span class="st">"xz"</span>,</span>
+<span id="cb17-44"><a href="#cb17-44" aria-hidden="true" tabindex="-1"></a>    <span class="at">file =</span> <span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"plots"</span>, <span class="st">"p_busco_association.rda"</span>)</span>
+<span id="cb17-45"><a href="#cb17-45" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb17-46"><a href="#cb17-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-47"><a href="#cb17-47" aria-hidden="true" tabindex="-1"></a><span class="co"># Save tables</span></span>
+<span id="cb17-48"><a href="#cb17-48" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(</span>
+<span id="cb17-49"><a href="#cb17-49" aria-hidden="true" tabindex="-1"></a>    sd_abundant_spp, <span class="at">compress =</span> <span class="st">"xz"</span>,</span>
+<span id="cb17-50"><a href="#cb17-50" aria-hidden="true" tabindex="-1"></a>    <span class="at">file =</span> <span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"result_files"</span>, <span class="st">"sd_abundant_spp.rda"</span>)</span>
+<span id="cb17-51"><a href="#cb17-51" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="session-info" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="session-info">Session info</h2>
+<p>This document was created under the following conditions:</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>─ Session info ───────────────────────────────────────────────────────────────
+ setting  value
+ version  R version 4.3.2 (2023-10-31)
+ os       Ubuntu 22.04.3 LTS
+ system   x86_64, linux-gnu
+ ui       X11
+ language (EN)
+ collate  en_US.UTF-8
+ ctype    en_US.UTF-8
+ tz       Europe/Brussels
+ date     2024-02-27
+ pandoc   3.1.1 @ /usr/lib/rstudio/resources/app/bin/quarto/bin/tools/ (via rmarkdown)
+
+─ Packages ───────────────────────────────────────────────────────────────────
+ package              * version     date (UTC) lib source
+ abind                  1.4-5       2016-07-21 [1] CRAN (R 4.3.2)
+ ade4                   1.7-22      2023-02-06 [1] CRAN (R 4.3.2)
+ AnnotationDbi          1.64.1      2023-11-03 [1] Bioconductor
+ ape                    5.7-1       2023-03-13 [1] CRAN (R 4.3.2)
+ aplot                  0.2.2       2023-10-06 [1] CRAN (R 4.3.2)
+ backports              1.4.1       2021-12-13 [1] CRAN (R 4.3.2)
+ Biobase                2.62.0      2023-10-24 [1] Bioconductor
+ BiocFileCache          2.10.1      2023-10-26 [1] Bioconductor
+ BiocGenerics           0.48.1      2023-11-01 [1] Bioconductor
+ BiocIO                 1.12.0      2023-10-24 [1] Bioconductor
+ BiocParallel           1.37.0      2024-01-19 [1] Github (Bioconductor/BiocParallel@79a1b2d)
+ biomaRt                2.58.2      2024-01-30 [1] Bioconductor 3.18 (R 4.3.2)
+ Biostrings             2.70.2      2024-01-28 [1] Bioconductor 3.18 (R 4.3.2)
+ bit                    4.0.5       2022-11-15 [1] CRAN (R 4.3.2)
+ bit64                  4.0.5       2020-08-30 [1] CRAN (R 4.3.2)
+ bitops                 1.0-7       2021-04-24 [1] CRAN (R 4.3.2)
+ blob                   1.2.4       2023-03-17 [1] CRAN (R 4.3.2)
+ broom                  1.0.5       2023-06-09 [1] CRAN (R 4.3.2)
+ cachem                 1.0.8       2023-05-01 [1] CRAN (R 4.3.2)
+ car                    3.1-2       2023-03-30 [1] CRAN (R 4.3.2)
+ carData                3.0-5       2022-01-06 [1] CRAN (R 4.3.2)
+ cli                    3.6.2       2023-12-11 [1] CRAN (R 4.3.2)
+ coda                   0.19-4.1    2024-01-31 [1] CRAN (R 4.3.2)
+ codetools              0.2-19      2023-02-01 [4] CRAN (R 4.2.2)
+ colorspace             2.1-0       2023-01-23 [1] CRAN (R 4.3.2)
+ crayon                 1.5.2       2022-09-29 [1] CRAN (R 4.3.2)
+ curl                   5.2.0       2023-12-08 [1] CRAN (R 4.3.2)
+ DBI                    1.2.1       2024-01-12 [1] CRAN (R 4.3.2)
+ dbplyr                 2.4.0       2023-10-26 [1] CRAN (R 4.3.2)
+ DelayedArray           0.28.0      2023-10-24 [1] Bioconductor
+ digest                 0.6.34      2024-01-11 [1] CRAN (R 4.3.2)
+ doParallel             1.0.17      2022-02-07 [1] CRAN (R 4.3.2)
+ doubletrouble        * 1.3.4       2024-02-05 [1] Bioconductor
+ dplyr                * 1.1.4       2023-11-17 [1] CRAN (R 4.3.2)
+ evaluate               0.23        2023-11-01 [1] CRAN (R 4.3.2)
+ fansi                  1.0.6       2023-12-08 [1] CRAN (R 4.3.2)
+ farver                 2.1.1       2022-07-06 [1] CRAN (R 4.3.2)
+ fastmap                1.1.1       2023-02-24 [1] CRAN (R 4.3.2)
+ filelock               1.0.3       2023-12-11 [1] CRAN (R 4.3.2)
+ forcats              * 1.0.0       2023-01-29 [1] CRAN (R 4.3.2)
+ foreach                1.5.2       2022-02-02 [1] CRAN (R 4.3.2)
+ fs                     1.6.3       2023-07-20 [1] CRAN (R 4.3.2)
+ generics               0.1.3       2022-07-05 [1] CRAN (R 4.3.2)
+ GenomeInfoDb           1.38.6      2024-02-08 [1] Bioconductor 3.18 (R 4.3.2)
+ GenomeInfoDbData       1.2.11      2023-12-21 [1] Bioconductor
+ GenomicAlignments      1.38.2      2024-01-16 [1] Bioconductor 3.18 (R 4.3.2)
+ GenomicFeatures        1.54.3      2024-01-31 [1] Bioconductor 3.18 (R 4.3.2)
+ GenomicRanges          1.54.1      2023-10-29 [1] Bioconductor
+ ggfun                  0.1.4       2024-01-19 [1] CRAN (R 4.3.2)
+ ggnetwork              0.5.13      2024-02-14 [1] CRAN (R 4.3.2)
+ ggplot2              * 3.4.4       2023-10-12 [1] CRAN (R 4.3.2)
+ ggplotify              0.1.2       2023-08-09 [1] CRAN (R 4.3.2)
+ ggpubr                 0.6.0.999   2024-02-09 [1] Github (kassambara/ggpubr@6aeb4f7)
+ ggsignif               0.6.4       2022-10-13 [1] CRAN (R 4.3.2)
+ ggtree               * 3.10.0      2023-10-24 [1] Bioconductor
+ glue                   1.7.0       2024-01-09 [1] CRAN (R 4.3.2)
+ gridGraphics           0.5-1       2020-12-13 [1] CRAN (R 4.3.2)
+ gtable                 0.3.4       2023-08-21 [1] CRAN (R 4.3.2)
+ here                 * 1.0.1       2020-12-13 [1] CRAN (R 4.3.2)
+ hms                    1.1.3       2023-03-21 [1] CRAN (R 4.3.2)
+ htmltools              0.5.7       2023-11-03 [1] CRAN (R 4.3.2)
+ htmlwidgets            1.6.4       2023-12-06 [1] CRAN (R 4.3.2)
+ httr                   1.4.7       2023-08-15 [1] CRAN (R 4.3.2)
+ igraph                 2.0.1.1     2024-01-30 [1] CRAN (R 4.3.2)
+ intergraph             2.0-4       2024-02-01 [1] CRAN (R 4.3.2)
+ IRanges                2.36.0      2023-10-24 [1] Bioconductor
+ iterators              1.0.14      2022-02-05 [1] CRAN (R 4.3.2)
+ jsonlite               1.8.8       2023-12-04 [1] CRAN (R 4.3.2)
+ KEGGREST               1.42.0      2023-10-24 [1] Bioconductor
+ knitr                  1.45        2023-10-30 [1] CRAN (R 4.3.2)
+ labeling               0.4.3       2023-08-29 [1] CRAN (R 4.3.2)
+ lattice                0.22-5      2023-10-24 [4] CRAN (R 4.3.1)
+ lazyeval               0.2.2       2019-03-15 [1] CRAN (R 4.3.2)
+ lifecycle              1.0.4       2023-11-07 [1] CRAN (R 4.3.2)
+ lubridate            * 1.9.3       2023-09-27 [1] CRAN (R 4.3.2)
+ magrittr               2.0.3       2022-03-30 [1] CRAN (R 4.3.2)
+ MASS                   7.3-60      2023-05-04 [4] CRAN (R 4.3.1)
+ Matrix                 1.6-3       2023-11-14 [4] CRAN (R 4.3.2)
+ MatrixGenerics         1.14.0      2023-10-24 [1] Bioconductor
+ matrixStats            1.2.0       2023-12-11 [1] CRAN (R 4.3.2)
+ mclust                 6.0.1       2023-11-15 [1] CRAN (R 4.3.2)
+ memoise                2.0.1       2021-11-26 [1] CRAN (R 4.3.2)
+ mgcv                   1.9-0       2023-07-11 [4] CRAN (R 4.3.1)
+ MSA2dist               1.6.0       2023-10-24 [1] Bioconductor
+ munsell                0.5.0       2018-06-12 [1] CRAN (R 4.3.2)
+ network                1.18.2      2023-12-05 [1] CRAN (R 4.3.2)
+ networkD3              0.4         2017-03-18 [1] CRAN (R 4.3.2)
+ nlme                   3.1-163     2023-08-09 [4] CRAN (R 4.3.1)
+ patchwork            * 1.2.0       2024-01-08 [1] CRAN (R 4.3.2)
+ pheatmap               1.0.12      2019-01-04 [1] CRAN (R 4.3.2)
+ pillar                 1.9.0       2023-03-22 [1] CRAN (R 4.3.2)
+ pkgconfig              2.0.3       2019-09-22 [1] CRAN (R 4.3.2)
+ png                    0.1-8       2022-11-29 [1] CRAN (R 4.3.2)
+ prettyunits            1.2.0       2023-09-24 [1] CRAN (R 4.3.2)
+ progress               1.2.3       2023-12-06 [1] CRAN (R 4.3.2)
+ purrr                * 1.0.2       2023-08-10 [1] CRAN (R 4.3.2)
+ R6                     2.5.1       2021-08-19 [1] CRAN (R 4.3.2)
+ rappdirs               0.3.3       2021-01-31 [1] CRAN (R 4.3.2)
+ RColorBrewer           1.1-3       2022-04-03 [1] CRAN (R 4.3.2)
+ Rcpp                   1.0.12      2024-01-09 [1] CRAN (R 4.3.2)
+ RCurl                  1.98-1.14   2024-01-09 [1] CRAN (R 4.3.2)
+ readr                * 2.1.5       2024-01-10 [1] CRAN (R 4.3.2)
+ restfulr               0.0.15      2022-06-16 [1] CRAN (R 4.3.2)
+ rjson                  0.2.21      2022-01-09 [1] CRAN (R 4.3.2)
+ rlang                  1.1.3       2024-01-10 [1] CRAN (R 4.3.2)
+ rmarkdown              2.25        2023-09-18 [1] CRAN (R 4.3.2)
+ rprojroot              2.0.4       2023-11-05 [1] CRAN (R 4.3.2)
+ Rsamtools              2.18.0      2023-10-24 [1] Bioconductor
+ RSQLite                2.3.5       2024-01-21 [1] CRAN (R 4.3.2)
+ rstatix                0.7.2       2023-02-01 [1] CRAN (R 4.3.2)
+ rstudioapi             0.15.0      2023-07-07 [1] CRAN (R 4.3.2)
+ rtracklayer            1.62.0      2023-10-24 [1] Bioconductor
+ S4Arrays               1.2.0       2023-10-24 [1] Bioconductor
+ S4Vectors              0.40.2      2023-11-23 [1] Bioconductor 3.18 (R 4.3.2)
+ scales                 1.3.0       2023-11-28 [1] CRAN (R 4.3.2)
+ seqinr                 4.2-36      2023-12-08 [1] CRAN (R 4.3.2)
+ sessioninfo            1.2.2       2021-12-06 [1] CRAN (R 4.3.2)
+ SparseArray            1.2.4       2024-02-11 [1] Bioconductor 3.18 (R 4.3.2)
+ statnet.common         4.9.0       2023-05-24 [1] CRAN (R 4.3.2)
+ stringi                1.8.3       2023-12-11 [1] CRAN (R 4.3.2)
+ stringr              * 1.5.1       2023-11-14 [1] CRAN (R 4.3.2)
+ SummarizedExperiment   1.32.0      2023-10-24 [1] Bioconductor
+ syntenet               1.4.0       2023-10-24 [1] Bioconductor
+ tibble               * 3.2.1       2023-03-20 [1] CRAN (R 4.3.2)
+ tidyr                * 1.3.1       2024-01-24 [1] CRAN (R 4.3.2)
+ tidyselect             1.2.0       2022-10-10 [1] CRAN (R 4.3.2)
+ tidytree               0.4.6       2023-12-12 [1] CRAN (R 4.3.2)
+ tidyverse            * 2.0.0       2023-02-22 [1] CRAN (R 4.3.2)
+ timechange             0.3.0       2024-01-18 [1] CRAN (R 4.3.2)
+ treeio                 1.26.0      2023-10-24 [1] Bioconductor
+ tzdb                   0.4.0       2023-05-12 [1] CRAN (R 4.3.2)
+ utf8                   1.2.4       2023-10-22 [1] CRAN (R 4.3.2)
+ vctrs                  0.6.5       2023-12-01 [1] CRAN (R 4.3.2)
+ withr                  3.0.0       2024-01-16 [1] CRAN (R 4.3.2)
+ xfun                   0.42        2024-02-08 [1] CRAN (R 4.3.2)
+ XML                    3.99-0.16.1 2024-01-22 [1] CRAN (R 4.3.2)
+ xml2                   1.3.6       2023-12-04 [1] CRAN (R 4.3.2)
+ XVector                0.42.0      2023-10-24 [1] Bioconductor
+ yaml                   2.3.8       2023-12-11 [1] CRAN (R 4.3.2)
+ yulab.utils            0.1.4       2024-01-28 [1] CRAN (R 4.3.2)
+ zlibbioc               1.48.0      2023-10-24 [1] Bioconductor
+
+ [1] /home/faalm/R/x86_64-pc-linux-gnu-library/4.3
+ [2] /usr/local/lib/R/site-library
+ [3] /usr/lib/R/site-library
+ [4] /usr/lib/R/library
+
+──────────────────────────────────────────────────────────────────────────────</code></pre>
+</div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../chapters/chapter_03.html" class="pagination-link" aria-label="Calculating substitution rates for selected Ensembl genomes">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Calculating substitution rates for selected Ensembl genomes</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../chapters/chapter_05.html" class="pagination-link" aria-label="Runtime benchmark">
+        <span class="nav-page-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Runtime benchmark</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

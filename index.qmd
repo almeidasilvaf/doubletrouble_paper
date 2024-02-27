@@ -1,5 +1,0 @@
-
-# Preface {.unnumbered}
-
-This book contains all code and data used in the paper
-*doubletrouble: an R/Bioconductor package for the identification, classification, and analyses of gene and genome duplications*, and it is intended to make all analyses fully reproducible.
