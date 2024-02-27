@@ -17,4 +17,3 @@ Gene and genome duplications are major evolutionary forces that shape the divers
 
 **Keywords:** molecular evolution, comparative genomics, paralogous genes, 
 polyploidy.
-
