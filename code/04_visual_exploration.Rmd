@@ -1,0 +1,578 @@
+---
+title: "Visual exploration of duplicated genes across the Eukarya tree of life"
+author:
+- name: Fabricio Almeida-Silva
+  affiliation: |
+    VIB-UGent Center for Plant Systems Biology, Ghent University, 
+    Ghent, Belgium
+- name: Yves Van de Peer
+  affiliation: |
+    VIB-UGent Center for Plant Systems Biology, Ghent University, 
+    Ghent, Belgium
+output:
+  BiocStyle::pdf_document
+vignette: |
+  %\VignetteIndexEntry{Visual exploration of duplicated genes across the Eukarya tree of life}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+    echo = TRUE,
+    warning = FALSE, 
+    eval = FALSE
+)
+
+Sys.setlocale("LC_TIME", "en_US.UTF-8")
+Sys.setlocale("LC_PAPER", "en_US.UTF-8")
+Sys.setlocale("LC_MEASUREMENT", "en_US.UTF-8")
+
+# Load pre-computed objects (to save time)
+load(here::here("products", "plots", "p_duplicates_all_ensembl.rda"))
+load(here::here("products", "result_files", "sd_abundant_spp.rda"))
+load(here::here("products", "plots", "p_busco_association.rda"))
+load(here::here("products", "plots", "p_rates_phylogeny.rda"))
+load(here::here("products", "plots", "p_ks_legumes.rda"))
+```
+
+# Introduction
+
+Here, we will describe the code to perform exploratory data analyses
+on the duplicated gene frequencies in genomes from Ensembl instances.
+
+To start, let's load the required data and packages.
+
+```{r load_packages, eval = TRUE}
+set.seed(123) # for reproducibility
+
+# Load required packages
+library(doubletrouble)
+library(here)
+library(ggtree)
+library(tidyverse)
+library(patchwork)
+
+source(here("code", "utils.R"))
+source(here("code", "utils_visualization.R"))
+```
+
+# Loading data
+
+First, we will load objects with species trees, duplicates per species,
+and BUSCO scores.
+
+```{r eval = TRUE}
+# Load metadata
+load(here("products", "result_files", "metadata_all.rda"))
+
+# Load BUSCO scores
+load(here("products", "result_files", "busco_scores", "fungi_busco_scores.rda"))
+load(here("products", "result_files", "busco_scores", "protists_busco_scores.rda"))
+load(here("products", "result_files", "busco_scores", "plants_busco_scores.rda"))
+load(here("products", "result_files", "busco_scores", "metazoa_busco_scores.rda"))
+load(here("products", "result_files", "busco_scores", "vertebrates_busco_scores.rda"))
+
+# Load trees
+load(here("products", "result_files", "trees", "fungi_busco_trees.rda"))
+load(here("products", "result_files", "trees", "protists_busco_trees.rda"))
+load(here("products", "result_files", "trees", "plants_busco_trees.rda"))
+load(here("products", "result_files", "trees", "metazoa_busco_trees.rda"))
+load(here("products", "result_files", "trees", "vertebrates_busco_trees.rda"))
+
+# Load duplicated genes
+load(here("products", "result_files", "fungi_duplicates_unique.rda"))
+load(here("products", "result_files", "protists_duplicates_unique.rda"))
+load(here("products", "result_files", "plants_duplicates_unique.rda"))
+load(here("products", "result_files", "vertebrates_duplicates_unique.rda"))
+load(here("products", "result_files", "metazoa_duplicates_unique.rda"))
+
+# Load substitution rates for plants
+load(here("products", "result_files", "plants_kaks.rda"))
+```
+
+# Visualizing the frequency of duplicated genes by mode
+
+Now, we will visualize the frequency of duplicated genes by mode for each 
+species. For that, we will first convert the list of duplicates into a
+long-formatted data frame, and clean tip labels in our species trees.
+
+```{r}
+# Rename tip labels of trees
+tree_fungi <- fungi_busco_trees$conc
+tree_fungi$tip.label <- gsub("\\.", "_", tree_fungi$tip.label)
+
+tree_protists <- protists_busco_trees$conc
+tree_protists$tip.label <- gsub("\\.", "_", tree_protists$tip.label)
+
+tree_plants <- plants_busco_trees$conc
+tree_plants$tip.label <- gsub("\\.", "_", tree_plants$tip.label)
+
+tree_metazoa <- metazoa_busco_trees$conc
+tree_metazoa$tip.label <- gsub("\\.", "_", tree_metazoa$tip.label)
+
+tree_vertebrates <- vertebrates_busco_trees$conc
+tree_vertebrates$tip.label <- gsub("\\.", "_", tree_vertebrates$tip.label)
+
+# Get count tables
+counts_fungi <- duplicates2counts(fungi_duplicates_unique)
+counts_protists <- duplicates2counts(protists_duplicates_unique)
+counts_plants <- duplicates2counts(plants_duplicates_unique)
+counts_vertebrates <- duplicates2counts(vertebrates_duplicates_unique)
+counts_metazoa <- duplicates2counts(metazoa_duplicates_unique)
+```
+
+Now, we will plot the trees with data for each Ensembl instance.
+
+```{r}
+# Fungi
+p_fungi_tree <- plot_tree_taxa(
+    tree = tree_fungi, 
+    metadata = metadata_all$fungi, 
+    taxon = "phylum",
+    text_size = 2.5
+)
+
+p_fungi <- wrap_plots(
+    # Plot 1: Species tree
+    p_fungi_tree,
+    # Plot 2: Duplicate relative frequency by mode
+    plot_duplicate_freqs(
+        counts_fungi |>
+            mutate(
+                species = factor(species, levels = rev(get_taxa_name(p_fungi_tree)))
+            ),
+        plot_type = "stack_percent"
+    ) +
+        theme(
+            axis.text.y = element_blank(),
+            axis.ticks.y = element_blank()
+        ) +
+        labs(y = NULL),
+    widths = c(1, 4)
+) +
+    plot_annotation(title = "Fungi") &
+    theme(plot.margin = margin(2, 0, 0, 2))
+
+# Protists
+p_protists_tree <- plot_tree_taxa(
+    tree = tree_protists, 
+    metadata = metadata_all$protists |>
+        filter(phylum != "Evosea"), 
+    taxon = "phylum", 
+    min_n_lab = 2,
+    padding_text = 0.2,
+    text_size = 2.5
+)
+p_protists <- wrap_plots(
+    # Plot 1: Species tree
+    p_protists_tree,
+    # Plot 2: Duplicate relative frequency by mode
+    plot_duplicate_freqs(
+        counts_protists |>
+            mutate(
+                species = factor(species, levels = rev(get_taxa_name(p_protists_tree)))
+            ),
+        plot_type = "stack_percent") +
+        theme(
+            axis.text.y = element_blank(),
+            axis.ticks.y = element_blank()
+        ) +
+        labs(y = NULL),
+    widths = c(1, 4)
+) +
+    plot_annotation(title = "Protists") &
+    theme(plot.margin = margin(2, 0, 0, 2))
+
+
+# Plants
+p_plants_tree <- plot_tree_taxa(
+    tree = tree_plants, 
+    metadata = metadata_all$plants, 
+    taxon = "order", 
+    min_n_lab = 3,
+    text_size = 2.5
+)
+p_plants <- wrap_plots(
+    # Plot 1: Species tree
+    p_plants_tree,
+    # Plot 2: Duplicate relative frequency by mode
+    plot_duplicate_freqs(
+        counts_plants |>
+            mutate(
+                species = factor(species, levels = rev(get_taxa_name(p_plants_tree)))
+            ),
+        plot_type = "stack_percent") +
+        theme(
+            axis.text.y = element_blank(),
+            axis.ticks.y = element_blank()
+        ) +
+        labs(y = NULL),
+    widths = c(1, 4)
+) +
+    plot_annotation(title = "Plants") &
+    theme(plot.margin = margin(2, 0, 0, 2))
+
+# Metazoa
+p_metazoa_tree <- plot_tree_taxa(
+    tree = tree_metazoa, 
+    metadata = metadata_all$metazoa |>
+        filter(class != "Myxozoa"), 
+    taxon = "phylum", 
+    min_n = 2, 
+    text_size = 2.2, 
+    padding_text = 2
+)
+p_metazoa <- wrap_plots(
+    # Plot 1: Species tree
+    p_metazoa_tree,
+    # Plot 2: Duplicate relative frequency by mode
+    plot_duplicate_freqs(
+        counts_metazoa |>
+            mutate(
+                species = factor(species, levels = rev(get_taxa_name(p_metazoa_tree)))
+            ),
+        plot_type = "stack_percent") +
+        theme(
+            axis.text.y = element_blank(),
+            axis.ticks.y = element_blank()
+        ) +
+        labs(y = NULL),
+    widths = c(1, 4) 
+) +
+    plot_annotation(title = "Metazoa") &
+    theme(plot.margin = margin(2, 0, 0, 2))
+
+# Vertebrates
+p_vertebrates_tree <- plot_tree_taxa(
+    tree = tree_vertebrates, 
+    metadata = metadata_all$ensembl |>
+        mutate(class = replace_na(class, "Other")), 
+    taxon = "class", 
+    min_n = 2, 
+    text_size = 2.5
+)
+p_vertebrates <- wrap_plots(
+    # Plot 1: Species tree
+    p_vertebrates_tree,
+    # Plot 2: Duplicate relative frequency by mode
+    plot_duplicate_freqs(
+        counts_vertebrates |>
+            mutate(
+                species = factor(species, levels = rev(get_taxa_name(p_vertebrates_tree)))
+            ),
+        plot_type = "stack_percent") +
+        theme(
+            axis.text.y = element_blank(),
+            axis.ticks.y = element_blank()
+        ) +
+        labs(y = NULL),
+    widths = c(1, 4)
+) +
+    plot_annotation(title = "Vertebrates") &
+    theme(plot.margin = margin(2, 0, 0, 2))
+
+# Combining all figures into one
+p_duplicates_all_ensembl <- wrap_plots(
+    wrap_plots(
+        p_protists + 
+            theme(legend.position = "none") + 
+            labs(title = "Protists", x = NULL), 
+        p_fungi + 
+            theme(legend.position = "none") +
+            ggtitle("Fungi"),
+        nrow = 2, heights = c(1, 2)
+    ), 
+    p_plants + theme(legend.position = "none") + ggtitle("Plants"), 
+    p_metazoa + theme(legend.position = "none") + ggtitle("Metazoa (Invertebrates)"), 
+    p_vertebrates + ggtitle("Ensembl (Vertebrates)"), 
+    nrow = 1
+) +
+    plot_layout(axis_titles = "collect")
+```
+
+```{r fig.height=10, fig.width=16, eval = TRUE}
+p_duplicates_all_ensembl
+```
+
+By visually comparing the Ensembl instances, we can see that plant genomes
+have a much greater abundance of segmental duplicates, possibly due to 
+pervasive whole-genome duplication events. However, other major branches
+of the Eukarya tree of life also have particular species with a high proportion
+of SD-derived genes. Notably, while SD events are widespread in plants, 
+vertebrate species with high proportions of SD-derived genes are concentrated
+in a particular branch (teleost fishes).
+To investigate that, we will highlight species for which
+at least 20% of the duplicated genes derived from segmental duplications.
+
+```{r}
+# For each Ensembl instance, show species with >=20% of genes derived from SD
+## Define helper function
+sd_abundant <- function(count_table, min = 20) {
+    
+    perc_table <- count_table |> 
+        group_by(species) |> 
+        mutate(percentage = (n / sum(n)) * 100) |> 
+        ungroup() |> 
+        filter(type == "SD", percentage >= min)
+    
+    return(perc_table)
+}
+
+# Get a table of SD-abundant species for each instance
+sd_abundant_spp <- bind_rows(
+    sd_abundant(counts_fungi) |> mutate(instance = "fungi"),
+    sd_abundant(counts_protists) |> mutate(instance = "protists"),
+    sd_abundant(counts_plants) |> mutate(instance = "plants"),
+    sd_abundant(counts_vertebrates) |> mutate(instance = "vertebrates"),
+    sd_abundant(counts_metazoa) |> mutate(instance = "metazoa")
+) |>
+    as.data.frame()
+```
+
+Then, let's summarize the frequencies (absolute and relative) in a table.
+
+```{r eval = TRUE}
+# How many species per instance?
+sd_abundant_spp |> 
+    count(instance) |>
+    mutate(
+        percentage = n / c(
+            nrow(metadata_all$fungi),
+            nrow(metadata_all$metazoa),
+            nrow(metadata_all$plants),
+            nrow(metadata_all$protists),
+            nrow(metadata_all$ensembl)
+        ) * 100
+    )
+```
+
+Once again, our findings highlight the abundance of large-scale duplications
+in plant genomes, as segmental duplications contributed to 20% of the 
+duplicated genes in 94 species (63%). Next, let's print all 
+SD-abundant species.
+
+```{r eval = TRUE}
+# Show all species
+knitr::kable(sd_abundant_spp)
+```
+
+# BUSCO scores
+
+Next, we will test whether the percentage of segmental duplicates in genomes
+is associated with the percentage of complete BUSCOs. In other words,
+we want to find out whether the low percentages of SD gene pairs is due to
+genome fragmentation.
+
+```{r}
+# Define function to plot association between % SD and % complete BUSCOs
+plot_busco_sd_assoc <- function(busco_df, counts_table) {
+    
+    p <- busco_df |>
+        filter(Class %in% c("Complete_SC", "Complete_duplicate")) |>
+        mutate(species = str_replace_all(File, "\\.fa", "")) |>
+        mutate(species = str_replace_all(species, "\\.", "_")) |>
+        group_by(species) |> 
+        summarise(complete_BUSCOs = sum(Frequency)) |>
+        inner_join(sd_abundant(counts_table, min = 0)) |>
+        ggpubr::ggscatter(
+            x = "complete_BUSCOs", y = "percentage",
+            color = "deepskyblue4", alpha = 0.4,
+            add = "reg.line", add.params = list(
+                color = "black", fill = "lightgray"
+            ),
+            conf.int = TRUE,
+            cor.coef = TRUE,
+            cor.coeff.args = list(
+                method = "pearson", label.x = 3, label.sep = "\n"
+            )
+        ) +
+        labs(x = "% complete BUSCOs", y = "% SD duplicates")
+    
+    return(p)
+}
+
+# Fungi
+p_busco_association <- patchwork::wrap_plots(
+    plot_busco_sd_assoc(fungi_busco_scores, counts_fungi) + 
+        labs(title = "Fungi"),
+    plot_busco_sd_assoc(plants_busco_scores, counts_plants) +
+        labs(title = "Plants"),
+    plot_busco_sd_assoc(protists_busco_scores, counts_protists) + 
+        labs(title = "Protists"),
+    plot_busco_sd_assoc(metazoa_busco_scores, counts_metazoa) +
+        labs(title = "Metazoa"),
+    plot_busco_sd_assoc(vertebrates_busco_scores, counts_vertebrates) +
+        labs(title = "Vertebrates"),
+    nrow = 1
+)
+```
+
+```{r eval = TRUE, fig.width=12, fig.height=5}
+p_busco_association
+```
+
+There is weak or no association between the percentage of complete BUSCOs
+and the percentage of SD-derived genes.
+
+# Visualizing substitution rates for selected plant species
+
+Here, we will first visualize $K_s$ distributions for *Glycine max* and
+*Phaseolus vulgaris* by mode of duplication.
+
+```{r}
+# G. max
+gmax_ks_distro <- plot_ks_distro(
+    plants_kaks$glycine_max, max_ks = 2, bytype = TRUE, binwidth = 0.03
+) +
+    labs(title = NULL, y = NULL)
+
+# P. vulgaris
+pvu_ks_distro <- plot_ks_distro(
+    plants_kaks$phaseolus_vulgaris, max_ks = 2, bytype = TRUE, binwidth = 0.03
+) +
+    labs(title = NULL, y = NULL)
+
+
+# Combining plots
+p_ks_legumes <- wrap_plots(
+    gmax_ks_distro + 
+        labs(title = "Glycine max") +
+        theme(plot.title = element_text(face = "italic")), 
+    pvu_ks_distro + 
+        labs(title = "Phaseolus vulgaris") +
+        theme(plot.title = element_text(face = "italic")), 
+    nrow = 1
+)
+```
+
+```{r eval = TRUE}
+p_ks_legumes
+```
+
+The plot shows the importance of visualizing Ks distributions by mode. 
+When visualizing the whole-paranome distribution, detection of peaks is not 
+trivial, and potential whole-genome duplication events might be masked. When
+we split the distribution by mode of duplication, we can more easily observe
+segmental duplicates that cluster together, providing strong evidence for
+whole-genome duplication events (2 events for *G. max*, and 1 events for
+*P. vulgaris*).
+
+Next, we will plot the distributions of $K_a$, $K_s$, and $K_a/K_s$ values 
+for selected plant species with phylogenetic context.
+
+```{r}
+# Subset plant tree to get selected species only
+tree_subset <- ape::keep.tip(tree_plants, names(plants_kaks))
+
+# Clean names
+names(plants_kaks) <- gsub("_", " ", str_to_title(names(plants_kaks)))
+tree_subset$tip.label <- gsub("_", " ", str_to_title(tree_subset$tip.label))
+
+# Plot tree
+p_tree_selected <- ggtree(tree_subset, branch.length = "none") +
+    geom_tiplab(fontface = "italic", size = 3)
+
+# Reoder rates list based on tree topology
+ord <- rev(ggtree::get_taxa_name(p_tree_selected))
+rl <- plants_kaks[ord]
+
+# Plot rates by species with tree on the left
+p_rates_phylogeny <- wrap_plots(
+    p_tree_selected + xlim(0, 10),
+    plot_rates_by_species(rl, rate_column = "Ks", range = c(0, 2)) +
+        theme(
+            axis.text.y = element_blank(),
+            axis.ticks.y = element_blank()
+        ),
+    plot_rates_by_species(
+        rl, rate_column = "Ka", range = c(0, 2), 
+        fill = "mediumseagreen", color = "seagreen"
+    ) +
+        theme(
+            axis.text.y = element_blank(),
+            axis.ticks.y = element_blank()
+        ),
+    plot_rates_by_species(
+        rl, rate_column = "Ka_Ks", range = c(0, 2),
+        fill = "darkorange2", color = "darkorange3"
+    ) +
+        theme(
+            axis.text.y = element_blank(),
+            axis.ticks.y = element_blank()
+        ),
+    nrow = 1
+) +
+    plot_annotation(title = "Substitution rates in a phylogenetic context")
+```
+
+```{r eval = TRUE}
+p_rates_phylogeny
+```
+
+# Saving objects {.unnumbered}
+
+Finally, let's save important objects created in this session for further use.
+
+```{r}
+# Save plots for each instance
+save(
+    p_fungi, compress = "xz", 
+    file = here("products", "plots", "p_fungi.rda")
+)
+
+save(
+    p_metazoa, compress = "xz", 
+    file = here("products", "plots", "p_metazoa.rda")
+)
+
+save(
+    p_protists, compress = "xz", 
+    file = here("products", "plots", "p_protists.rda")
+)
+
+save(
+    p_vertebrates, compress = "xz", 
+    file = here("products", "plots", "p_vertebrates.rda")
+)
+
+save(
+    p_plants, compress = "xz", 
+    file = here("products", "plots", "p_plants.rda")
+)
+
+save(
+    p_duplicates_all_ensembl, compress = "xz",
+    file = here("products", "plots", "p_duplicates_all_ensembl.rda")
+)
+
+save(
+    p_ks_legumes, compress = "xz",
+    file = here("products", "plots", "p_ks_legumes.rda")
+)
+
+save(
+    p_rates_phylogeny, compress = "xz",
+    file = here("products", "plots", "p_rates_phylogeny.rda")
+)
+
+save(
+    p_busco_association, compress = "xz",
+    file = here("products", "plots", "p_busco_association.rda")
+)
+
+# Save tables
+save(
+    sd_abundant_spp, compress = "xz",
+    file = here("products", "result_files", "sd_abundant_spp.rda")
+)
+```
+
+# Session info {.unnumbered}
+
+This document was created under the following conditions:
+
+```{r sessionInfo, echo = FALSE, eval = TRUE}
+sessioninfo::session_info()
+```
+
