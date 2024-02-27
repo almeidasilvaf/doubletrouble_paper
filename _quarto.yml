@@ -1,0 +1,32 @@
+project:
+  type: book
+
+book:
+  title: |
+    Code and data for "doubletrouble: an R/Bioconductor package for 
+    the identification, classification, and analyses of gene 
+    and genome duplications"
+  author: 
+    - name: Fabricio Almeida-Silva
+      orcid: 0000-0002-5314-2964
+  date: "year"
+  chapters:
+    - index.qmd
+    - chapters/chapter_01.qmd
+    - chapters/chapter_02.qmd
+    - chapters/chapter_03.qmd
+    - chapters/chapter_04.qmd
+    - chapters/chapter_05.qmd
+    - chapters/appendices.qmd
+
+bibliography: bibliography.bib
+
+execute:
+  freeze: auto
+
+format:
+  html:
+    theme: cosmo
+
+editor: 
+  mode: source
