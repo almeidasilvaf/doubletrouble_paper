@@ -1,0 +1,13 @@
+---
+execute: 
+  echo: true
+  eval: false
+  warning: false
+---
+
+# Appendices {.unnumbered}
+
+In the main chapters, we used other pieces of code that are stored in separate
+R scripts for better readability. They can be found in the `code/` directory of 
+[the GitHub repo associated with this book](https://github.com/almeidasilvaf/doubletrouble_paper).
+

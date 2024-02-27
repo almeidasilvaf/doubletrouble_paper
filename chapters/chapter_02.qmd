@@ -1,0 +1,445 @@
+---
+execute: 
+  echo: true
+  eval: false
+  warning: false
+---
+
+# Identification and classification of duplicated genes in Ensembl and Ensembl Genomes
+
+Here, we will describe the code to identify and classify duplicated genes
+in Ensembl and Ensembl Genomes species using the Bioconductor package 
+`r BiocStyle::Biocpkg("doubletrouble")`. 
+
+```{r load_packages}
+#| eval: true
+library(syntenet)
+library(doubletrouble)
+library(biomaRt)
+library(here)
+library(tidyverse)
+
+set.seed(123) # for reproducibility
+options(timeout = 1e10) # to allow download of big files
+
+# Load helper functions
+source(here("code", "utils.R"))
+```
+
+## Data loading: species trees and metadata
+
+Here, we will load the data frames of species metadata and `phylo` objects
+with species trees for each Ensembl instance.
+
+```{r}
+#| eval: true
+
+# Load metadata
+load(here("products", "result_files", "metadata_all.rda"))
+names(metadata_all)
+
+# Load trees
+load(here("products", "result_files", "trees", "fungi_busco_trees.rda"))
+load(here("products", "result_files", "trees", "plants_busco_trees.rda"))
+load(here("products", "result_files", "trees", "metazoa_busco_trees.rda"))
+load(here("products", "result_files", "trees", "vertebrates_busco_trees.rda"))
+load(here("products", "result_files", "trees", "protists_busco_trees.rda"))
+```
+
+## Identification and classification of duplicated genes in Ensembl and Ensembl Genomes
+
+Now, let's use `r BiocStyle::Biocpkg("doubletrouble")` to
+identify duplicated genes and classify them using the Ensembl and 
+Ensembl Genomes data sets. Here, to avoid code repetition and optimize
+memory usage, we will use the wrapper function `ensembl2duplicates()` (in
+the file *utils.R*). For each species in the metadata data frame,
+this function:
+
+1. Retrieves whole-genome protein sequences (`AAStringSet`) and
+gene annotation (`GRanges`) from an Ensembl instance;
+
+2. Filters the `AAStringSet` object to include only the longest protein
+for each gene (i.e., the translated sequence of the primary transcript);
+
+3. Processes the sequences and annotation with `syntenet::process_input()`;
+
+4. Identifies the paranome with `syntenet::run_diamond()` +
+identifies orthologs between the query species and an outgroup (optional);
+
+5. Classifies paralogs by duplication modes.
+
+
+### Ensembl Fungi
+
+First, let's create a data frame with species and their outgroups.
+Here, we will use the basidiomycete *Cryptococcus neoformans* as outgroup
+for Ascomycota species, and the oomycete *Aphanomyces astaci* as outgroup for
+Basidiomycota species.
+
+```{r}
+col_dir <- here("products", "result_files", "collinearity", "fungi")
+if(!dir.exists(col_dir)) { dir.create(col_dir, recursive = TRUE) }
+
+# Create data frame of query species and outgroup
+fungi_outgroups <- metadata_all$fungi |>
+    filter(phylum != "Oomycota") |>
+    mutate(
+        query = species,
+        outgroup = case_when(
+            phylum == "Ascomycota" ~ "cryptococcus_neoformans",
+            TRUE ~ "aphanomyces_astaci"
+        )
+    ) |>
+    select(query, outgroup)
+
+# Identifying and classifying paralogs
+fungi_duplicates <- ensembl2duplicates(
+    metadata_all$fungi, ensembl = "fungi", 
+    outgroups = fungi_outgroups,
+    collinearity_dir = col_dir
+)
+
+# Classify genes into unique duplication modes
+fungi_duplicates_unique <- classify_genes(fungi_duplicates)
+
+# Save classification results
+## Duplicate pairs
+save(
+    fungi_duplicates,
+    file = here("products", "result_files", "fungi_duplicates.rda"),
+    compress = "xz"
+)
+
+## Duplicated genes (unique duplication modes)
+save(
+    fungi_duplicates_unique,
+    file = here("products", "result_files", "fungi_duplicates_unique.rda"),
+    compress = "xz"
+)
+```
+
+### Ensembl Protists
+
+Since protists are not a real (i.e., monophyletic) group, defining
+an outgroup species is very problematic. For this reason, we will classify
+duplicates using the *standard* classification scheme here.
+
+```{r}
+col_dir <- here("products", "result_files", "collinearity", "protists")
+if(!dir.exists(col_dir)) { dir.create(col_dir, recursive = TRUE) }
+
+# Identifying and classifying paralogs
+protists_duplicates <- ensembl2duplicates(
+    metadata_all$protists, ensembl = "protists", collinearity_dir = col_dir
+)
+
+# Classify genes into unique duplication modes
+protists_duplicates_unique <- classify_genes(protists_duplicates)
+
+# Save classification results
+## Duplicate pairs
+save(
+    protists_duplicates,
+    file = here("products", "result_files", "protists_duplicates.rda"),
+    compress = "xz"
+)
+
+## Duplicated genes (unique duplication modes)
+save(
+    protists_duplicates_unique,
+    file = here("products", "result_files", "protists_duplicates_unique.rda"),
+    compress = "xz"
+)
+```
+
+
+### Ensembl Plants
+
+Here, we will use different outgroups for different branches of the tree.
+The clades and outgroups are:
+
+1. Angiosperms: *Amborella trichopoda* as outgroup.
+
+2. *Amborella trichopoda* and *Nymphaea colorata*: *Chara braunii* as outgroup.
+
+3. *Selaginella moellendorffii*, *Chara braunii*, 
+*Marchantia polymorpha*, *Physcomitrium patens*: 
+*Chlamydomonas reinhardtii* as outgroup.
+
+4. *Chlamydomonas reinhardtii* and *Ostreococcus lucimarinus*: 
+*Galdieria sulphuraria* as outgroup
+
+5. Rhodophyta algae: no outgroup. 
+
+```{r}
+# Create data frame of query species and outgroup
+angiosperms <- metadata_all$plants |>
+    filter(
+        phylum == "Streptophyta",
+        !order %in% c(
+            "Charales", "Selaginellales", "Funariales", 
+            "Marchantiales", "Nymphaeales"
+        )
+    ) |>
+    pull(species)
+
+ana <- c("amborella_trichopoda", "nymphaea_colorata")
+bryophytes <- c(
+    "selaginella_moellendorffii", "chara_braunii", 
+    "marchantia_polymorpha", "physcomitrium_patens"
+)
+chlorophyta <- c("chlamydomonas_reinhardtii", "ostreococcus_lucimarinus")
+
+plants_outgroups <- metadata_all$plants |>
+    filter(phylum != "Rhodophyta") |>
+    mutate(
+        query = species,
+        outgroup = case_when(
+            species %in% angiosperms ~ "amborella_trichopoda",
+            species %in% ana ~ "chara_braunii",
+            species %in% bryophytes ~ "chlamydomonas_reinhardtii",
+            species %in% chlorophyta ~ "galdieria_sulphuraria"
+        )
+    ) |>
+    select(query, outgroup)
+```
+
+Identifying and classifying duplicates:
+
+```{r}
+col_dir <- here("products", "result_files", "collinearity", "plants")
+if(!dir.exists(col_dir)) { dir.create(col_dir, recursive = TRUE) }
+
+# Identifying and classifying paralogs
+plants_duplicates <- ensembl2duplicates(
+    metadata_all$plants, ensembl = "plants", 
+    outgroups = plants_outgroups, 
+    collinearity_dir = col_dir, 
+    threads = 4
+)
+
+# Classify genes into unique duplication modes
+plants_duplicates_unique <- classify_genes(plants_duplicates)
+
+# Save classification results
+## Duplicate pairs
+save(
+    plants_duplicates,
+    file = here("products", "result_files", "plants_duplicates.rda"),
+    compress = "xz"
+)
+
+## Duplicated genes (unique duplication modes)
+save(
+    plants_duplicates_unique,
+    file = here("products", "result_files", "plants_duplicates_unique.rda"),
+    compress = "xz"
+)
+```
+
+### Ensembl Metazoa
+
+Here, we will use different outgroups for different branches of the tree.
+The clades and outgroups are:
+
+1. Arthropoda: *Hypsibius exemplaris* (Tardigrada) as outgroup.
+
+2. Tardigrada, Acanthocephala, and Rotifera: *Brugia malayi* (Nematoda) 
+as outgroup.
+
+3. Nematoda: *Priapulus caudatus* (Priapulida) as outgroup
+
+4. Priapulida, Echinodermata, Chordata, and 
+Hemichordata: *Hofstenia miamia* (Xenacoelomorpha) as outgroup.
+
+5. Xenacoelomorpha: *Actinia tenebrosa* (Cnidaria) as outgroup.
+
+6. Cnidaria and Placozoa: *Amphimedon queenslandica* (Porifera) as outgroup.
+
+7. Porifera: *Mnemiopsis leidyi* (Ctenophora) as outgroup.
+
+8. Brachiopoda: *Haliotis rufescens* (Mollusca) as outgroup.
+
+9. Mollusca, Annelida, and Platyhelminthes: *Adineta vaga* (Rotifera)
+as outgroup.
+
+```{r}
+# Create data frame of query species and outgroup
+by_phylum <- function(df, taxon) {
+    return(
+        df |> 
+            dplyr::filter(phylum == taxon) |> 
+            dplyr::pull(species)
+    )
+}
+
+arthropoda <- by_phylum(metadata_all$metazoa, "Arthropoda")
+tardigrada <- by_phylum(metadata_all$metazoa, "Tardigrada")
+nematoda <- by_phylum(metadata_all$metazoa, "Nematoda")
+priapulida <- by_phylum(metadata_all$metazoa, "Priapulida")
+xenacoelomorpha <- by_phylum(metadata_all$metazoa, "Xenacoelomorpha")
+cnidaria <- by_phylum(metadata_all$metazoa, "Cnidaria")
+placozoa <- by_phylum(metadata_all$metazoa, "Placozoa")
+porifera <- by_phylum(metadata_all$metazoa, "Porifera")
+brachiopoda <- by_phylum(metadata_all$metazoa, "Brachiopoda")
+mollusca <- by_phylum(metadata_all$metazoa, "Mollusca")
+echinodermata <- by_phylum(metadata_all$metazoa, "Echinodermata")
+annelida <- by_phylum(metadata_all$metazoa, "Annelida")
+platyhelminthes <- by_phylum(metadata_all$metazoa, "Platyhelminthes")
+acanthocephala <- by_phylum(metadata_all$metazoa, "Acanthocephala")
+chordata <- by_phylum(metadata_all$metazoa, "Chordata")
+hemichordata <- by_phylum(metadata_all$metazoa, "Hemichordata")
+rotifera <- by_phylum(metadata_all$metazoa, "Rotifera")
+
+metazoa_outgroups <- metadata_all$metazoa |>
+    filter(phylum != "Ctenophora") |>
+    mutate(
+        query = species,
+        outgroup = case_when(
+            species %in% arthropoda ~ "hypsibius_exemplaris_gca002082055v1",
+            species %in% c(tardigrada, acanthocephala, rotifera) ~ "brugia_malayi",
+            species %in% nematoda ~ "priapulus_caudatus_gca000485595v2",
+            
+            species %in% c(priapulida, echinodermata, chordata, hemichordata) ~
+                "hofstenia_miamia",
+            species %in% xenacoelomorpha ~ "actinia_tenebrosa_gca009602425v1",
+            species %in% c(cnidaria, placozoa) ~
+                "amphimedon_queenslandica_gca000090795v2rs",
+            species %in% porifera ~ "mnemiopsis_leidyi",
+            species %in% brachiopoda ~ "haliotis_rufescens_gca023055435v1rs",
+            species %in% c(mollusca, annelida, platyhelminthes) ~ "adineta_vaga"
+        )
+    ) |>
+    select(query, outgroup)
+```
+
+Identifying and classifying duplicates:
+
+```{r}
+col_dir <- here("products", "result_files", "collinearity", "metazoa")
+if(!dir.exists(col_dir)) { dir.create(col_dir, recursive = TRUE) }
+
+# Identifying and classifying paralogs
+metazoa_duplicates <- ensembl2duplicates(
+    metadata = metadata_all$metazoa, 
+    ensembl = "metazoa", 
+    outgroups = metazoa_outgroups, 
+    collinearity_dir = col_dir, 
+    threads = 4
+)
+
+# Classify genes into unique duplication modes
+metazoa_duplicates_unique <- classify_genes(metazoa_duplicates)
+
+# Save classification results
+## Duplicate pairs
+save(
+    metazoa_duplicates,
+    file = here("products", "result_files", "metazoa_duplicates.rda"),
+    compress = "xz"
+)
+
+## Duplicated genes (unique duplication modes)
+save(
+    metazoa_duplicates_unique,
+    file = here("products", "result_files", "metazoa_duplicates_unique.rda"),
+    compress = "xz"
+)
+```
+
+
+### Ensembl (Vertebrates)
+
+Here, we will use the following outgroups per taxa:
+
+1. Amniota: *Xenopus tropicalis* (Amphibia) as outgroup;
+2. Amphibia: *Latimeria chalumnae* (West Indian Ocean coelacanth)
+3. All bony and cartilaginous fish: *Eptatretus burgeri* (hagfish, Agnatha)
+4. Agnatha: *Ciona intestinalis* (Tunicata)
+
+```{r}
+# Create a data frame of species and outgroups
+amniota <- metadata_all$ensembl |>
+    filter(
+        class %in% c("Aves", "Mammalia", "Lepidosauria") | 
+            order %in% c("Testudines", "Crocodylia")
+    ) |>
+    pull(species)
+
+amphibia <- metadata_all$ensembl |>
+    filter(class == "Amphibia") |> 
+    pull(species)
+
+fish <- metadata_all$ensembl |>
+    filter(
+        class %in% c("Actinopteri", "Chondrichthyes", "Cladistia") | 
+            order == "Coelacanthiformes"
+    ) |>
+    pull(species)
+
+agnatha <- metadata_all$ensembl |>
+    filter(
+        class %in% c("Myxini", "Hyperoartia")
+    ) |>
+    pull(species)
+
+ensembl_outgroups <- metadata_all$ensembl |>
+    filter(!phylum %in% c("Nematoda", "Arthropoda", "Ascomycota")) |>
+    mutate(
+        query = species,
+        outgroup = case_when(
+            species %in% amniota ~ "xenopus_tropicalis",
+            species %in% amphibia ~ "latimeria_chalumnae",
+            species %in% fish ~ "eptatretus_burgeri",
+            species %in% agnatha ~ "ciona_intestinalis"
+        )
+    ) |>
+    select(query, outgroup) |>
+    filter(!is.na(outgroup))
+```
+
+Identifying and classifying duplicates:
+
+```{r}
+col_dir <- here("products", "result_files", "collinearity", "vertebrates")
+if(!dir.exists(col_dir)) { dir.create(col_dir, recursive = TRUE) }
+
+# Identifying and classifying paralogs
+vertebrates_duplicates <- ensembl2duplicates(
+    meta, 
+    ensembl = "ensembl", 
+    outgroups = ensembl_outgroups, 
+    collinearity_dir = col_dir, 
+    tsv_dir = "~/Documents/vertebrates_duplicates", # delete later
+    threads = 4
+)
+
+# Classify genes into unique duplication modes
+vertebrates_duplicates_unique <- classify_genes(vertebrates_duplicates)
+
+# Save classification results
+## Duplicate pairs
+save(
+    vertebrates_duplicates,
+    file = here("products", "result_files", "vertebrates_duplicates.rda"),
+    compress = "xz"
+)
+
+## Duplicated genes (unique duplication modes)
+save(
+    vertebrates_duplicates_unique,
+    file = here("products", "result_files", "vertebrates_duplicates_unique.rda"),
+    compress = "xz"
+)
+```
+
+## Session info {.unnumbered}
+
+This document was created under the following conditions:
+
+```{r sessionInfo}
+#| echo: FALSE
+#| eval: TRUE
+sessioninfo::session_info()
+```
+
