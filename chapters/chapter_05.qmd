@@ -28,6 +28,19 @@ source(here("code", "utils.R"))
 load(here("products", "result_files", "metadata_all.rda"))
 ```
 
+```{r}
+#| echo: false
+#| eval: true
+
+load(here("products", "result_files", "benchmark_comparison.rda"))
+all_paralogs <- readRDS(
+    here("products", "result_files", "ath_all_paralogs.rds")
+)
+range_examples <- readRDS(
+    here("products", "result_files", "pd_difference_ranges.rds")
+)
+```
+
 ## Benchmark 1: `classify_gene_pairs()`
 
 Here, we will benchmark the performance of `classify_gene_pairs()`
@@ -169,6 +182,291 @@ save(
     file = here("products", "result_files", "benchmark_kaks.rda")
 )
 ```
+
+## Benchmark 3: **doubletrouble** vs __DupGen_finder__
+
+Here, we will classify duplicate pairs in the *A. thaliana* genome 
+using __doubletrouble__ and DupGen_finder to assess if they produce the same 
+results, and compare their runtimes. 
+
+First, let's get all data we need (proteomes, annotation, and DIAMOND tables).
+
+```{r}
+# Get annotation
+smeta <- data.frame(
+    species = c("arabidopsis_thaliana", "amborella_trichopoda"),
+    instance = "plants"
+)
+annot <- get_annotation(smeta, "plants")
+
+# Get proteome and keep only primary transcripts
+seq <- get_proteomes(smeta, "plants")
+seq <- filter_sequences(seq, annot)
+    
+# Process data
+pdata <- syntenet::process_input(seq, annot, filter_annotation = TRUE)
+    
+# Run intraspecies DIAMOND search
+outdir <- file.path(tempdir(), "benchmark3_intra")
+diamond_intra <- syntenet::run_diamond(
+    seq = pdata$seq,
+    compare = "intraspecies", 
+    outdir = outdir,
+    threads = 4,
+    ... = "--sensitive"
+)
+fs::dir_delete(outdir)
+
+# Run interspecies DIAMOND search
+outdir2 <- file.path(tempdir(), "benchmark3_inter")
+compare_df <- data.frame(
+    query = "arabidopsis.thaliana", target = "amborella.trichopoda"
+)
+
+diamond_inter <- syntenet::run_diamond(
+    seq = pdata$seq,
+    compare = compare_df, 
+    outdir = outdir2,
+    threads = 4,
+    ... = "--sensitive"
+)
+fs::dir_delete(outdir2)
+```
+
+Now, let's classify duplicates with __doubletrouble__.
+
+```{r}
+# Classify duplicates with doubletrouble
+start1 <- Sys.time()
+dups1 <- classify_gene_pairs(
+    blast_list = diamond_intra[2],
+    annotation = pdata$annotation,
+    blast_inter = diamond_inter,
+    scheme = "extended",
+    collinearity_dir = here("products")
+)
+end1 <- Sys.time()
+runtime1 <- end1 - start1
+```
+
+Next, we will classify duplicates with DupGen_finder. For that, we will first
+export input data in the required format.
+
+```{r}
+#| echo: false
+
+Sys.setenv(
+    PATH = paste(
+        Sys.getenv("PATH"), "/home/faalm/Documents/tools/DupGen_finder",
+        sep = ":"
+    )
+)
+```
+
+```{r}
+# Export data
+## .blast files
+b1 <- diamond_intra$arabidopsis.thaliana_arabidopsis.thaliana |>
+    mutate(
+        query = str_replace_all(query, "^ara_", ""),
+        db = str_replace_all(db, "^ara_", "")
+    )
+
+b2 <- diamond_inter$arabidopsis.thaliana_amborella.trichopoda |>
+    mutate(
+        query = str_replace_all(query, "^ara_", ""),
+        db = str_replace_all(db, "^amb_", "")
+    )
+
+write_tsv(b1, file = file.path(tempdir(), "Ath.blast"), col_names = FALSE)
+write_tsv(b2, file = file.path(tempdir(), "Ath_Atr.blast"), col_names = FALSE)
+
+## .gff files
+gff1 <- pdata$annotation$arabidopsis.thaliana |>
+    as.data.frame() |>
+    mutate(gene = str_replace_all(gene, "^ara_", "")) |>
+    mutate(seqnames = str_replace_all(seqnames, "ara_", "ara-")) |>
+    dplyr::select(seqnames, gene, start, end)
+
+gff2 <- pdata$annotation$amborella.trichopoda |>
+    as.data.frame() |>
+    mutate(gene = str_replace_all(gene, "^amb_", "")) |>
+    mutate(seqnames = str_replace_all(seqnames, "^amb_", "amb-")) |>
+    dplyr::select(seqnames, gene, start, end)
+
+gff2 <- bind_rows(gff1, gff2)
+
+write_tsv(gff1, file = file.path(tempdir(), "Ath.gff"), col_names = FALSE)
+write_tsv(gff2, file = file.path(tempdir(), "Ath_Atr.gff"), col_names = FALSE)
+
+# Classify duplicates with DupGen_finder
+args = c(
+    "-i", tempdir(), "-t Ath -c Atr",
+    "-o", file.path(tempdir(), "results"),
+    "-e 1e-10"
+)
+
+start2 <- Sys.time()
+system2("DupGen_finder.pl", args = args)
+end2 <- Sys.time()
+runtime2 <- end2 - start2
+```
+
+Now, let's compare both algorithms in terms of runtime and results.
+
+```{r}
+# Load `DupGen_finder.pl` results
+files <- c(
+    "Ath.wgd.pairs", "Ath.tandem.pairs", "Ath.proximal.pairs",
+    "Ath.transposed.pairs", "Ath.dispersed.pairs"
+)
+files <- file.path(tempdir(), "results", files)
+names(files) <- c("SD", "TD", "PD", "TRD", "DD")
+dups2 <- Reduce(rbind, lapply(seq_along(files), function(x) {
+    d <- read_tsv(files[x], show_col_types = FALSE) |>
+        mutate(type = names(files)[x]) |>
+        select(1, 3, type) |>
+        as.data.frame()
+    
+    names(d)[c(1,2)] <- c("dup1", "dup2")
+    
+    return(d)
+}))
+
+# Compare runtime
+comp_runtime <- data.frame(doubletrouble = runtime1, DupGen_finder = runtime2)
+
+# Compare number of gene pairs per category
+comp_results <- inner_join(
+    count(dups1$arabidopsis.thaliana, type) |> 
+        dplyr::rename(n_doubletrouble = n),
+    count(dups2, type) |>
+        dplyr::rename(n_DupGen_finder = n),
+    by = "type"
+)
+comp_results <- bind_rows(
+    comp_results, 
+    data.frame(
+        type = "Total", 
+        n_doubletrouble = sum(comp_results$n_doubletrouble),
+        n_DupGen_finder = sum(comp_results$n_DupGen_finder)
+    )
+)
+```
+
+```{r}
+#| echo: false
+save(
+    comp_results, comp_runtime, 
+    compress = "xz",
+    file = here("products", "result_files", "benchmark_comparison.rda")
+)
+```
+
+```{r}
+#| eval: true
+list(runtime = comp_runtime, results = comp_results)
+```
+
+Overall, results are similar, but there are important differences. In terms
+of runtime, there is no significant difference (this is the runtime of a single
+run, so there's some stochasticity). In terms of results, the numbers
+of SD, TD, and TRD pairs are similar, but there are more pronounced differences
+for PD and DD pairs. In particular, the total number of paralogous pairs differs
+between algorithms. When we remove rows from the DIAMOND output based on 
+the E-value threshold and remove self (e.g., "gene1-gene1") and redundant 
+hits (e.g., "gene1-gene2" and "gene2-gene1"), we get the following total 
+number of pairs:
+
+```{r}
+# Get total number of paralog pairs from DIAMOND output
+evalue <- 1e-10
+dmd <- diamond_intra$arabidopsis.thaliana_arabidopsis.thaliana
+
+all_paralogs <- lapply(list(dmd), function(x) {
+    fpair <- x[x$evalue <= evalue, c(1, 2)]
+    fpair <- fpair[fpair[, 1] != fpair[, 2], ]
+    fpair <- fpair[!duplicated(t(apply(fpair, 1, sort))), ]
+    names(fpair) <- c("dup1", "dup2")
+    return(fpair)
+})[[1]]
+```
+
+```{r}
+#| echo: false
+saveRDS(
+    all_paralogs, compress = "xz", 
+    file = here("products", "result_files", "ath_all_paralogs.rds")
+)
+```
+
+```{r}
+#| eval: true
+nrow(all_paralogs)
+```
+
+The total number of paralogous pairs in the DIAMOND output is the same as
+sum of classes for __doubletrouble__, but greater than the sum of classes
+for __DupGen_finder__, indicating that the latter probably does some additional
+(undocumented) filtering before classifying gene pairs, or it could be a bug.
+
+Finally, since the number of PD pairs identified by __doubletrouble__ is much
+greater than the number of PD pairs identified by __DupGen_finder__, we will 
+explore a few of these PD pairs so check whether __doubletrouble__ 
+misclassified them.
+
+```{r}
+pd1 <- dups1$arabidopsis.thaliana |>
+    filter(type == "PD")
+
+pd2 <- dups2 |>
+    filter(type == "PD")
+
+# Get all pairs in `pd1` and `pd2`
+p1 <- t(apply(pd1[, 1:2], 1, sort)) |>
+    as.data.frame() |>
+    mutate(V1 = str_replace_all(V1, "^ara_", "")) |>
+    mutate(V2 = str_replace_all(V2, "^ara_", "")) |>
+    mutate(pair_string = str_c(V1, V2, sep = "-")) |>
+    pull(pair_string)
+
+p2 <- t(apply(pd2[, 1:2], 1, sort)) |>
+    as.data.frame() |>
+    mutate(pair_string = str_c(V1, V2, sep = "-")) |>
+    pull(pair_string)
+
+# Sample PD pairs from doubletrouble that are not PD pairs in DupGen_finder
+examples <- p1[!p1 %in% p2] |> head(n = 5)
+
+# Check whether they are PD pairs or not
+ath_annot <- pdata$annotation$arabidopsis.thaliana
+range_examples <- lapply(examples, function(x) {
+    g1 <- paste0("ara_", strsplit(x, "-")[[1]][1])
+    g2 <- paste0("ara_", strsplit(x, "-")[[1]][2])
+    ranges <- ath_annot[ath_annot$gene %in% c(g1, g2)]
+    return(ranges)
+})
+```
+
+```{r}
+#| echo: false
+saveRDS(
+    range_examples, compress = "xz",
+    file = here("products", "result_files", "pd_difference_ranges.rds")
+)
+```
+
+```{r}
+#| eval: true
+range_examples
+```
+
+In these first five examples of pairs that are classified as PD pairs by
+__doubletrouble__, but not by __DupGen_finder__, we can see based on the
+numbers in row names that they are indeed very close, separated by only a few 
+genes (<10). Thus, they are true PD pairs that __DupGen_finder__ failed 
+to classify as PD pairs, or removed in their undocumented filtering (described
+above).
 
 ## Session info {.unnumbered}
 
