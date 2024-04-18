@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.4.550">
+<meta name="generator" content="quarto-1.4.553">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -194,6 +194,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul>
   <li><a href="#benchmark-1-classify_gene_pairs" id="toc-benchmark-1-classify_gene_pairs" class="nav-link active" data-scroll-target="#benchmark-1-classify_gene_pairs"><span class="header-section-number">5.1</span> Benchmark 1: <code>classify_gene_pairs()</code></a></li>
   <li><a href="#benchmark-2-pairs2kaks" id="toc-benchmark-2-pairs2kaks" class="nav-link" data-scroll-target="#benchmark-2-pairs2kaks"><span class="header-section-number">5.2</span> Benchmark 2: <code>pairs2kaks()</code></a></li>
+  <li><a href="#benchmark-3-doubletrouble-vs-dupgen_finder" id="toc-benchmark-3-doubletrouble-vs-dupgen_finder" class="nav-link" data-scroll-target="#benchmark-3-doubletrouble-vs-dupgen_finder"><span class="header-section-number">5.3</span> Benchmark 3: <strong>doubletrouble</strong> vs <strong>DupGen_finder</strong></a></li>
   <li><a href="#session-info" id="toc-session-info" class="nav-link" data-scroll-target="#session-info">Session info</a></li>
   </ul>
 </nav>
@@ -368,6 +369,276 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
+<section id="benchmark-3-doubletrouble-vs-dupgen_finder" class="level2" data-number="5.3">
+<h2 data-number="5.3" class="anchored" data-anchor-id="benchmark-3-doubletrouble-vs-dupgen_finder"><span class="header-section-number">5.3</span> Benchmark 3: <strong>doubletrouble</strong> vs <strong>DupGen_finder</strong></h2>
+<p>Here, we will classify duplicate pairs in the <em>A. thaliana</em> genome using <strong>doubletrouble</strong> and DupGen_finder to assess if they produce the same results, and compare their runtimes.</p>
+<p>First, let’s get all data we need (proteomes, annotation, and DIAMOND tables).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Get annotation</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>smeta <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">species =</span> <span class="fu">c</span>(<span class="st">"arabidopsis_thaliana"</span>, <span class="st">"amborella_trichopoda"</span>),</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">instance =</span> <span class="st">"plants"</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>annot <span class="ot">&lt;-</span> <span class="fu">get_annotation</span>(smeta, <span class="st">"plants"</span>)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Get proteome and keep only primary transcripts</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>seq <span class="ot">&lt;-</span> <span class="fu">get_proteomes</span>(smeta, <span class="st">"plants"</span>)</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>seq <span class="ot">&lt;-</span> <span class="fu">filter_sequences</span>(seq, annot)</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Process data</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>pdata <span class="ot">&lt;-</span> syntenet<span class="sc">::</span><span class="fu">process_input</span>(seq, annot, <span class="at">filter_annotation =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Run intraspecies DIAMOND search</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>outdir <span class="ot">&lt;-</span> <span class="fu">file.path</span>(<span class="fu">tempdir</span>(), <span class="st">"benchmark3_intra"</span>)</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>diamond_intra <span class="ot">&lt;-</span> syntenet<span class="sc">::</span><span class="fu">run_diamond</span>(</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">seq =</span> pdata<span class="sc">$</span>seq,</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">compare =</span> <span class="st">"intraspecies"</span>, </span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">outdir =</span> outdir,</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">threads =</span> <span class="dv">4</span>,</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">... =</span> <span class="st">"--sensitive"</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>fs<span class="sc">::</span><span class="fu">dir_delete</span>(outdir)</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a><span class="co"># Run interspecies DIAMOND search</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>outdir2 <span class="ot">&lt;-</span> <span class="fu">file.path</span>(<span class="fu">tempdir</span>(), <span class="st">"benchmark3_inter"</span>)</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>compare_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">query =</span> <span class="st">"arabidopsis.thaliana"</span>, <span class="at">target =</span> <span class="st">"amborella.trichopoda"</span></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>diamond_inter <span class="ot">&lt;-</span> syntenet<span class="sc">::</span><span class="fu">run_diamond</span>(</span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">seq =</span> pdata<span class="sc">$</span>seq,</span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">compare =</span> compare_df, </span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>    <span class="at">outdir =</span> outdir2,</span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>    <span class="at">threads =</span> <span class="dv">4</span>,</span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">... =</span> <span class="st">"--sensitive"</span></span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>fs<span class="sc">::</span><span class="fu">dir_delete</span>(outdir2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Now, let’s classify duplicates with <strong>doubletrouble</strong>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Classify duplicates with doubletrouble</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>start1 <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>dups1 <span class="ot">&lt;-</span> <span class="fu">classify_gene_pairs</span>(</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">blast_list =</span> diamond_intra[<span class="dv">2</span>],</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">annotation =</span> pdata<span class="sc">$</span>annotation,</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">blast_inter =</span> diamond_inter,</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">scheme =</span> <span class="st">"extended"</span>,</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">collinearity_dir =</span> <span class="fu">here</span>(<span class="st">"products"</span>)</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>end1 <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>runtime1 <span class="ot">&lt;-</span> end1 <span class="sc">-</span> start1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Next, we will classify duplicates with DupGen_finder. For that, we will first export input data in the required format.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Export data</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="do">## .blast files</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>b1 <span class="ot">&lt;-</span> diamond_intra<span class="sc">$</span>arabidopsis.thaliana_arabidopsis.thaliana <span class="sc">|&gt;</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">query =</span> <span class="fu">str_replace_all</span>(query, <span class="st">"^ara_"</span>, <span class="st">""</span>),</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">db =</span> <span class="fu">str_replace_all</span>(db, <span class="st">"^ara_"</span>, <span class="st">""</span>)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>b2 <span class="ot">&lt;-</span> diamond_inter<span class="sc">$</span>arabidopsis.thaliana_amborella.trichopoda <span class="sc">|&gt;</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>        <span class="at">query =</span> <span class="fu">str_replace_all</span>(query, <span class="st">"^ara_"</span>, <span class="st">""</span>),</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">db =</span> <span class="fu">str_replace_all</span>(db, <span class="st">"^amb_"</span>, <span class="st">""</span>)</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="fu">write_tsv</span>(b1, <span class="at">file =</span> <span class="fu">file.path</span>(<span class="fu">tempdir</span>(), <span class="st">"Ath.blast"</span>), <span class="at">col_names =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="fu">write_tsv</span>(b2, <span class="at">file =</span> <span class="fu">file.path</span>(<span class="fu">tempdir</span>(), <span class="st">"Ath_Atr.blast"</span>), <span class="at">col_names =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="do">## .gff files</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>gff1 <span class="ot">&lt;-</span> pdata<span class="sc">$</span>annotation<span class="sc">$</span>arabidopsis.thaliana <span class="sc">|&gt;</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.data.frame</span>() <span class="sc">|&gt;</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">gene =</span> <span class="fu">str_replace_all</span>(gene, <span class="st">"^ara_"</span>, <span class="st">""</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">seqnames =</span> <span class="fu">str_replace_all</span>(seqnames, <span class="st">"ara_"</span>, <span class="st">"ara-"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">select</span>(seqnames, gene, start, end)</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>gff2 <span class="ot">&lt;-</span> pdata<span class="sc">$</span>annotation<span class="sc">$</span>amborella.trichopoda <span class="sc">|&gt;</span></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.data.frame</span>() <span class="sc">|&gt;</span></span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">gene =</span> <span class="fu">str_replace_all</span>(gene, <span class="st">"^amb_"</span>, <span class="st">""</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">seqnames =</span> <span class="fu">str_replace_all</span>(seqnames, <span class="st">"^amb_"</span>, <span class="st">"amb-"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">select</span>(seqnames, gene, start, end)</span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>gff2 <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(gff1, gff2)</span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a><span class="fu">write_tsv</span>(gff1, <span class="at">file =</span> <span class="fu">file.path</span>(<span class="fu">tempdir</span>(), <span class="st">"Ath.gff"</span>), <span class="at">col_names =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a><span class="fu">write_tsv</span>(gff2, <span class="at">file =</span> <span class="fu">file.path</span>(<span class="fu">tempdir</span>(), <span class="st">"Ath_Atr.gff"</span>), <span class="at">col_names =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a><span class="co"># Classify duplicates with DupGen_finder</span></span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>args <span class="ot">=</span> <span class="fu">c</span>(</span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>    <span class="st">"-i"</span>, <span class="fu">tempdir</span>(), <span class="st">"-t Ath -c Atr"</span>,</span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>    <span class="st">"-o"</span>, <span class="fu">file.path</span>(<span class="fu">tempdir</span>(), <span class="st">"results"</span>),</span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>    <span class="st">"-e 1e-10"</span></span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>start2 <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a><span class="fu">system2</span>(<span class="st">"DupGen_finder.pl"</span>, <span class="at">args =</span> args)</span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>end2 <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>runtime2 <span class="ot">&lt;-</span> end2 <span class="sc">-</span> start2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Now, let’s compare both algorithms in terms of runtime and results.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load `DupGen_finder.pl` results</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>files <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Ath.wgd.pairs"</span>, <span class="st">"Ath.tandem.pairs"</span>, <span class="st">"Ath.proximal.pairs"</span>,</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Ath.transposed.pairs"</span>, <span class="st">"Ath.dispersed.pairs"</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>files <span class="ot">&lt;-</span> <span class="fu">file.path</span>(<span class="fu">tempdir</span>(), <span class="st">"results"</span>, files)</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(files) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"SD"</span>, <span class="st">"TD"</span>, <span class="st">"PD"</span>, <span class="st">"TRD"</span>, <span class="st">"DD"</span>)</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>dups2 <span class="ot">&lt;-</span> <span class="fu">Reduce</span>(rbind, <span class="fu">lapply</span>(<span class="fu">seq_along</span>(files), <span class="cf">function</span>(x) {</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    d <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(files[x], <span class="at">show_col_types =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mutate</span>(<span class="at">type =</span> <span class="fu">names</span>(files)[x]) <span class="sc">|&gt;</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>        <span class="fu">select</span>(<span class="dv">1</span>, <span class="dv">3</span>, type) <span class="sc">|&gt;</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>        <span class="fu">as.data.frame</span>()</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">names</span>(d)[<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>)] <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"dup1"</span>, <span class="st">"dup2"</span>)</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(d)</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>}))</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Compare runtime</span></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>comp_runtime <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">doubletrouble =</span> runtime1, <span class="at">DupGen_finder =</span> runtime2)</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Compare number of gene pairs per category</span></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>comp_results <span class="ot">&lt;-</span> <span class="fu">inner_join</span>(</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">count</span>(dups1<span class="sc">$</span>arabidopsis.thaliana, type) <span class="sc">|&gt;</span> </span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>        dplyr<span class="sc">::</span><span class="fu">rename</span>(<span class="at">n_doubletrouble =</span> n),</span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>    <span class="fu">count</span>(dups2, type) <span class="sc">|&gt;</span></span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>        dplyr<span class="sc">::</span><span class="fu">rename</span>(<span class="at">n_DupGen_finder =</span> n),</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="st">"type"</span></span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>comp_results <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>    comp_results, </span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>    <span class="fu">data.frame</span>(</span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>        <span class="at">type =</span> <span class="st">"Total"</span>, </span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>        <span class="at">n_doubletrouble =</span> <span class="fu">sum</span>(comp_results<span class="sc">$</span>n_doubletrouble),</span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>        <span class="at">n_DupGen_finder =</span> <span class="fu">sum</span>(comp_results<span class="sc">$</span>n_DupGen_finder)</span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">list</span>(<span class="at">runtime =</span> comp_runtime, <span class="at">results =</span> comp_results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$runtime
+  doubletrouble DupGen_finder
+1  3.71474 secs 3.373682 secs
+
+$results
+   type n_doubletrouble n_DupGen_finder
+1    SD            4329            4355
+2    TD            2075            2131
+3    PD            2789             896
+4   TRD            6703            5941
+5    DD           31589           17834
+6 Total           47485           31157</code></pre>
+</div>
+</div>
+<p>Overall, results are similar, but there are important differences. In terms of runtime, there is no significant difference (this is the runtime of a single run, so there’s some stochasticity). In terms of results, the numbers of SD, TD, and TRD pairs are similar, but there are more pronounced differences for PD and DD pairs. In particular, the total number of paralogous pairs differs between algorithms. When we remove rows from the DIAMOND output based on the E-value threshold and remove self (e.g., “gene1-gene1”) and redundant hits (e.g., “gene1-gene2” and “gene2-gene1”), we get the following total number of pairs:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Get total number of paralog pairs from DIAMOND output</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>evalue <span class="ot">&lt;-</span> <span class="fl">1e-10</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>dmd <span class="ot">&lt;-</span> diamond_intra<span class="sc">$</span>arabidopsis.thaliana_arabidopsis.thaliana</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>all_paralogs <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="fu">list</span>(dmd), <span class="cf">function</span>(x) {</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    fpair <span class="ot">&lt;-</span> x[x<span class="sc">$</span>evalue <span class="sc">&lt;=</span> evalue, <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>)]</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    fpair <span class="ot">&lt;-</span> fpair[fpair[, <span class="dv">1</span>] <span class="sc">!=</span> fpair[, <span class="dv">2</span>], ]</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    fpair <span class="ot">&lt;-</span> fpair[<span class="sc">!</span><span class="fu">duplicated</span>(<span class="fu">t</span>(<span class="fu">apply</span>(fpair, <span class="dv">1</span>, sort))), ]</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">names</span>(fpair) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"dup1"</span>, <span class="st">"dup2"</span>)</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(fpair)</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>})[[<span class="dv">1</span>]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(all_paralogs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 47485</code></pre>
+</div>
+</div>
+<p>The total number of paralogous pairs in the DIAMOND output is the same as sum of classes for <strong>doubletrouble</strong>, but greater than the sum of classes for <strong>DupGen_finder</strong>, indicating that the latter probably does some additional (undocumented) filtering before classifying gene pairs, or it could be a bug.</p>
+<p>Finally, since the number of PD pairs identified by <strong>doubletrouble</strong> is much greater than the number of PD pairs identified by <strong>DupGen_finder</strong>, we will explore a few of these PD pairs so check whether <strong>doubletrouble</strong> misclassified them.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>pd1 <span class="ot">&lt;-</span> dups1<span class="sc">$</span>arabidopsis.thaliana <span class="sc">|&gt;</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(type <span class="sc">==</span> <span class="st">"PD"</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>pd2 <span class="ot">&lt;-</span> dups2 <span class="sc">|&gt;</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(type <span class="sc">==</span> <span class="st">"PD"</span>)</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Get all pairs in `pd1` and `pd2`</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">t</span>(<span class="fu">apply</span>(pd1[, <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>], <span class="dv">1</span>, sort)) <span class="sc">|&gt;</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.data.frame</span>() <span class="sc">|&gt;</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">V1 =</span> <span class="fu">str_replace_all</span>(V1, <span class="st">"^ara_"</span>, <span class="st">""</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">V2 =</span> <span class="fu">str_replace_all</span>(V2, <span class="st">"^ara_"</span>, <span class="st">""</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">pair_string =</span> <span class="fu">str_c</span>(V1, V2, <span class="at">sep =</span> <span class="st">"-"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pull</span>(pair_string)</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> <span class="fu">t</span>(<span class="fu">apply</span>(pd2[, <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>], <span class="dv">1</span>, sort)) <span class="sc">|&gt;</span></span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.data.frame</span>() <span class="sc">|&gt;</span></span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">pair_string =</span> <span class="fu">str_c</span>(V1, V2, <span class="at">sep =</span> <span class="st">"-"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pull</span>(pair_string)</span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Sample PD pairs from doubletrouble that are not PD pairs in DupGen_finder</span></span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>examples <span class="ot">&lt;-</span> p1[<span class="sc">!</span>p1 <span class="sc">%in%</span> p2] <span class="sc">|&gt;</span> <span class="fu">head</span>(<span class="at">n =</span> <span class="dv">5</span>)</span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a><span class="co"># Check whether they are PD pairs or not</span></span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>ath_annot <span class="ot">&lt;-</span> pdata<span class="sc">$</span>annotation<span class="sc">$</span>arabidopsis.thaliana</span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>range_examples <span class="ot">&lt;-</span> <span class="fu">lapply</span>(examples, <span class="cf">function</span>(x) {</span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>    g1 <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"ara_"</span>, <span class="fu">strsplit</span>(x, <span class="st">"-"</span>)[[<span class="dv">1</span>]][<span class="dv">1</span>])</span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>    g2 <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"ara_"</span>, <span class="fu">strsplit</span>(x, <span class="st">"-"</span>)[[<span class="dv">1</span>]][<span class="dv">2</span>])</span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>    ranges <span class="ot">&lt;-</span> ath_annot[ath_annot<span class="sc">$</span>gene <span class="sc">%in%</span> <span class="fu">c</span>(g1, g2)]</span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(ranges)</span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>range_examples</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]
+GRanges object with 2 ranges and 1 metadata column:
+      seqnames        ranges strand |          gene
+         &lt;Rle&gt;     &lt;IRanges&gt;  &lt;Rle&gt; |   &lt;character&gt;
+  128    ara_1 428650-430720      - | ara_AT1G02220
+  130    ara_1 437860-439559      - | ara_AT1G02250
+  -------
+  seqinfo: 7 sequences from an unspecified genome; no seqlengths
+
+[[2]]
+GRanges object with 2 ranges and 1 metadata column:
+      seqnames        ranges strand |          gene
+         &lt;Rle&gt;     &lt;IRanges&gt;  &lt;Rle&gt; |   &lt;character&gt;
+  127    ara_1 427548-427811      - | ara_AT1G02210
+  130    ara_1 437860-439559      - | ara_AT1G02250
+  -------
+  seqinfo: 7 sequences from an unspecified genome; no seqlengths
+
+[[3]]
+GRanges object with 2 ranges and 1 metadata column:
+        seqnames        ranges strand |          gene
+           &lt;Rle&gt;     &lt;IRanges&gt;  &lt;Rle&gt; |   &lt;character&gt;
+  17117    ara_4 656407-659178      - | ara_AT4G01520
+  17120    ara_4 673862-676445      - | ara_AT4G01550
+  -------
+  seqinfo: 7 sequences from an unspecified genome; no seqlengths
+
+[[4]]
+GRanges object with 2 ranges and 1 metadata column:
+        seqnames            ranges strand |          gene
+           &lt;Rle&gt;         &lt;IRanges&gt;  &lt;Rle&gt; |   &lt;character&gt;
+  15329    ara_3 17882465-17884515      + | ara_AT3G48290
+  15332    ara_3 17887996-17889942      + | ara_AT3G48310
+  -------
+  seqinfo: 7 sequences from an unspecified genome; no seqlengths
+
+[[5]]
+GRanges object with 2 ranges and 1 metadata column:
+        seqnames            ranges strand |          gene
+           &lt;Rle&gt;         &lt;IRanges&gt;  &lt;Rle&gt; |   &lt;character&gt;
+  25845    ara_5 21378702-21379744      + | ara_AT5G52720
+  25847    ara_5 21382482-21383432      + | ara_AT5G52740
+  -------
+  seqinfo: 7 sequences from an unspecified genome; no seqlengths</code></pre>
+</div>
+</div>
+<p>In these first five examples of pairs that are classified as PD pairs by <strong>doubletrouble</strong>, but not by <strong>DupGen_finder</strong>, we can see based on the numbers in row names that they are indeed very close, separated by only a few genes (&lt;10). Thus, they are true PD pairs that <strong>DupGen_finder</strong> failed to classify as PD pairs, or removed in their undocumented filtering (described above).</p>
+</section>
 <section id="session-info" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="session-info">Session info</h2>
 <p>This document was created under the following conditions:</p>
@@ -383,132 +654,132 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
  tz       Europe/Brussels
- date     2024-02-12
+ date     2024-04-18
  pandoc   3.1.1 @ /usr/lib/rstudio/resources/app/bin/quarto/bin/tools/ (via rmarkdown)
 
 ─ Packages ───────────────────────────────────────────────────────────────────
- package              * version   date (UTC) lib source
- abind                  1.4-5     2016-07-21 [1] CRAN (R 4.3.2)
- ade4                   1.7-22    2023-02-06 [1] CRAN (R 4.3.2)
- AnnotationDbi          1.64.1    2023-11-03 [1] Bioconductor
- ape                    5.7-1     2023-03-13 [1] CRAN (R 4.3.2)
- Biobase                2.62.0    2023-10-24 [1] Bioconductor
- BiocFileCache          2.10.1    2023-10-26 [1] Bioconductor
- BiocGenerics           0.48.1    2023-11-01 [1] Bioconductor
- BiocIO                 1.12.0    2023-10-24 [1] Bioconductor
- BiocParallel           1.37.0    2024-01-19 [1] Github (Bioconductor/BiocParallel@79a1b2d)
- biomaRt                2.58.0    2023-10-24 [1] Bioconductor
- Biostrings             2.70.1    2023-10-25 [1] Bioconductor
- bit                    4.0.5     2022-11-15 [1] CRAN (R 4.3.2)
- bit64                  4.0.5     2020-08-30 [1] CRAN (R 4.3.2)
- bitops                 1.0-7     2021-04-24 [1] CRAN (R 4.3.2)
- blob                   1.2.4     2023-03-17 [1] CRAN (R 4.3.2)
- cachem                 1.0.8     2023-05-01 [1] CRAN (R 4.3.2)
- cli                    3.6.2     2023-12-11 [1] CRAN (R 4.3.2)
- coda                   0.19-4    2020-09-30 [1] CRAN (R 4.3.2)
- codetools              0.2-19    2023-02-01 [4] CRAN (R 4.2.2)
- colorspace             2.1-0     2023-01-23 [1] CRAN (R 4.3.2)
- crayon                 1.5.2     2022-09-29 [1] CRAN (R 4.3.2)
- curl                   5.2.0     2023-12-08 [1] CRAN (R 4.3.2)
- DBI                    1.1.3     2022-06-18 [1] CRAN (R 4.3.2)
- dbplyr                 2.4.0     2023-10-26 [1] CRAN (R 4.3.2)
- DelayedArray           0.28.0    2023-10-24 [1] Bioconductor
- digest                 0.6.33    2023-07-07 [1] CRAN (R 4.3.2)
- doParallel             1.0.17    2022-02-07 [1] CRAN (R 4.3.2)
- doubletrouble        * 1.3.4     2024-02-05 [1] Bioconductor
- dplyr                * 1.1.4     2023-11-17 [1] CRAN (R 4.3.2)
- evaluate               0.23      2023-11-01 [1] CRAN (R 4.3.2)
- fansi                  1.0.6     2023-12-08 [1] CRAN (R 4.3.2)
- fastmap                1.1.1     2023-02-24 [1] CRAN (R 4.3.2)
- filelock               1.0.3     2023-12-11 [1] CRAN (R 4.3.2)
- forcats              * 1.0.0     2023-01-29 [1] CRAN (R 4.3.2)
- foreach                1.5.2     2022-02-02 [1] CRAN (R 4.3.2)
- generics               0.1.3     2022-07-05 [1] CRAN (R 4.3.2)
- GenomeInfoDb           1.38.2    2023-12-13 [1] Bioconductor 3.18 (R 4.3.2)
- GenomeInfoDbData       1.2.11    2023-12-21 [1] Bioconductor
- GenomicAlignments      1.38.0    2023-10-24 [1] Bioconductor
- GenomicFeatures        1.54.1    2023-10-29 [1] Bioconductor
- GenomicRanges          1.54.1    2023-10-29 [1] Bioconductor
- ggnetwork              0.5.12    2023-03-06 [1] CRAN (R 4.3.2)
- ggplot2              * 3.4.4     2023-10-12 [1] CRAN (R 4.3.2)
- glue                   1.6.2     2022-02-24 [1] CRAN (R 4.3.2)
- gtable                 0.3.4     2023-08-21 [1] CRAN (R 4.3.2)
- here                 * 1.0.1     2020-12-13 [1] CRAN (R 4.3.2)
- hms                    1.1.3     2023-03-21 [1] CRAN (R 4.3.2)
- htmltools              0.5.7     2023-11-03 [1] CRAN (R 4.3.2)
- htmlwidgets            1.6.4     2023-12-06 [1] CRAN (R 4.3.2)
- httr                   1.4.7     2023-08-15 [1] CRAN (R 4.3.2)
- igraph                 2.0.1.1   2024-01-30 [1] CRAN (R 4.3.2)
- intergraph             2.0-3     2023-08-20 [1] CRAN (R 4.3.2)
- IRanges                2.36.0    2023-10-24 [1] Bioconductor
- iterators              1.0.14    2022-02-05 [1] CRAN (R 4.3.2)
- jsonlite               1.8.8     2023-12-04 [1] CRAN (R 4.3.2)
- KEGGREST               1.42.0    2023-10-24 [1] Bioconductor
- knitr                  1.45      2023-10-30 [1] CRAN (R 4.3.2)
- lattice                0.22-5    2023-10-24 [4] CRAN (R 4.3.1)
- lifecycle              1.0.4     2023-11-07 [1] CRAN (R 4.3.2)
- lubridate            * 1.9.3     2023-09-27 [1] CRAN (R 4.3.2)
- magrittr               2.0.3     2022-03-30 [1] CRAN (R 4.3.2)
- MASS                   7.3-60    2023-05-04 [4] CRAN (R 4.3.1)
- Matrix                 1.6-3     2023-11-14 [4] CRAN (R 4.3.2)
- MatrixGenerics         1.14.0    2023-10-24 [1] Bioconductor
- matrixStats            1.2.0     2023-12-11 [1] CRAN (R 4.3.2)
- mclust                 6.0.1     2023-11-15 [1] CRAN (R 4.3.2)
- memoise                2.0.1     2021-11-26 [1] CRAN (R 4.3.2)
- MSA2dist               1.6.0     2023-10-24 [1] Bioconductor
- munsell                0.5.0     2018-06-12 [1] CRAN (R 4.3.2)
- network                1.18.2    2023-12-05 [1] CRAN (R 4.3.2)
- networkD3              0.4       2017-03-18 [1] CRAN (R 4.3.2)
- nlme                   3.1-163   2023-08-09 [4] CRAN (R 4.3.1)
- patchwork            * 1.2.0     2024-01-08 [1] CRAN (R 4.3.2)
- pheatmap               1.0.12    2019-01-04 [1] CRAN (R 4.3.2)
- pillar                 1.9.0     2023-03-22 [1] CRAN (R 4.3.2)
- pkgconfig              2.0.3     2019-09-22 [1] CRAN (R 4.3.2)
- png                    0.1-8     2022-11-29 [1] CRAN (R 4.3.2)
- prettyunits            1.2.0     2023-09-24 [1] CRAN (R 4.3.2)
- progress               1.2.3     2023-12-06 [1] CRAN (R 4.3.2)
- purrr                * 1.0.2     2023-08-10 [1] CRAN (R 4.3.2)
- R6                     2.5.1     2021-08-19 [1] CRAN (R 4.3.2)
- rappdirs               0.3.3     2021-01-31 [1] CRAN (R 4.3.2)
- RColorBrewer           1.1-3     2022-04-03 [1] CRAN (R 4.3.2)
- Rcpp                   1.0.11    2023-07-06 [1] CRAN (R 4.3.2)
- RCurl                  1.98-1.13 2023-11-02 [1] CRAN (R 4.3.2)
- readr                * 2.1.4     2023-02-10 [1] CRAN (R 4.3.2)
- restfulr               0.0.15    2022-06-16 [1] CRAN (R 4.3.2)
- rjson                  0.2.21    2022-01-09 [1] CRAN (R 4.3.2)
- rlang                  1.1.2     2023-11-04 [1] CRAN (R 4.3.2)
- rmarkdown              2.25      2023-09-18 [1] CRAN (R 4.3.2)
- rprojroot              2.0.4     2023-11-05 [1] CRAN (R 4.3.2)
- Rsamtools              2.18.0    2023-10-24 [1] Bioconductor
- RSQLite                2.3.4     2023-12-08 [1] CRAN (R 4.3.2)
- rstudioapi             0.15.0    2023-07-07 [1] CRAN (R 4.3.2)
- rtracklayer            1.62.0    2023-10-24 [1] Bioconductor
- S4Arrays               1.2.0     2023-10-24 [1] Bioconductor
- S4Vectors              0.40.2    2023-11-23 [1] Bioconductor 3.18 (R 4.3.2)
- scales                 1.3.0     2023-11-28 [1] CRAN (R 4.3.2)
- seqinr                 4.2-36    2023-12-08 [1] CRAN (R 4.3.2)
- sessioninfo            1.2.2     2021-12-06 [1] CRAN (R 4.3.2)
- SparseArray            1.2.2     2023-11-07 [1] Bioconductor
- statnet.common         4.9.0     2023-05-24 [1] CRAN (R 4.3.2)
- stringi                1.8.3     2023-12-11 [1] CRAN (R 4.3.2)
- stringr              * 1.5.1     2023-11-14 [1] CRAN (R 4.3.2)
- SummarizedExperiment   1.32.0    2023-10-24 [1] Bioconductor
- syntenet               1.4.0     2023-10-24 [1] Bioconductor
- tibble               * 3.2.1     2023-03-20 [1] CRAN (R 4.3.2)
- tidyr                * 1.3.0     2023-01-24 [1] CRAN (R 4.3.2)
- tidyselect             1.2.0     2022-10-10 [1] CRAN (R 4.3.2)
- tidyverse            * 2.0.0     2023-02-22 [1] CRAN (R 4.3.2)
- timechange             0.2.0     2023-01-11 [1] CRAN (R 4.3.2)
- tzdb                   0.4.0     2023-05-12 [1] CRAN (R 4.3.2)
- utf8                   1.2.4     2023-10-22 [1] CRAN (R 4.3.2)
- vctrs                  0.6.5     2023-12-01 [1] CRAN (R 4.3.2)
- withr                  2.5.2     2023-10-30 [1] CRAN (R 4.3.2)
- xfun                   0.41      2023-11-01 [1] CRAN (R 4.3.2)
- XML                    3.99-0.16 2023-11-29 [1] CRAN (R 4.3.2)
- xml2                   1.3.6     2023-12-04 [1] CRAN (R 4.3.2)
- XVector                0.42.0    2023-10-24 [1] Bioconductor
- yaml                   2.3.8     2023-12-11 [1] CRAN (R 4.3.2)
- zlibbioc               1.48.0    2023-10-24 [1] Bioconductor
+ package              * version     date (UTC) lib source
+ abind                  1.4-5       2016-07-21 [1] CRAN (R 4.3.2)
+ ade4                   1.7-22      2023-02-06 [1] CRAN (R 4.3.2)
+ AnnotationDbi          1.64.1      2023-11-03 [1] Bioconductor
+ ape                    5.7-1       2023-03-13 [1] CRAN (R 4.3.2)
+ Biobase                2.62.0      2023-10-24 [1] Bioconductor
+ BiocFileCache          2.10.1      2023-10-26 [1] Bioconductor
+ BiocGenerics           0.48.1      2023-11-01 [1] Bioconductor
+ BiocIO                 1.12.0      2023-10-24 [1] Bioconductor
+ BiocParallel           1.37.0      2024-01-19 [1] Github (Bioconductor/BiocParallel@79a1b2d)
+ biomaRt                2.58.2      2024-01-30 [1] Bioconductor 3.18 (R 4.3.2)
+ Biostrings             2.70.2      2024-01-28 [1] Bioconductor 3.18 (R 4.3.2)
+ bit                    4.0.5       2022-11-15 [1] CRAN (R 4.3.2)
+ bit64                  4.0.5       2020-08-30 [1] CRAN (R 4.3.2)
+ bitops                 1.0-7       2021-04-24 [1] CRAN (R 4.3.2)
+ blob                   1.2.4       2023-03-17 [1] CRAN (R 4.3.2)
+ cachem                 1.0.8       2023-05-01 [1] CRAN (R 4.3.2)
+ cli                    3.6.2       2023-12-11 [1] CRAN (R 4.3.2)
+ coda                   0.19-4.1    2024-01-31 [1] CRAN (R 4.3.2)
+ codetools              0.2-19      2023-02-01 [4] CRAN (R 4.2.2)
+ colorspace             2.1-0       2023-01-23 [1] CRAN (R 4.3.2)
+ crayon                 1.5.2       2022-09-29 [1] CRAN (R 4.3.2)
+ curl                   5.2.0       2023-12-08 [1] CRAN (R 4.3.2)
+ DBI                    1.2.1       2024-01-12 [1] CRAN (R 4.3.2)
+ dbplyr                 2.4.0       2023-10-26 [1] CRAN (R 4.3.2)
+ DelayedArray           0.28.0      2023-10-24 [1] Bioconductor
+ digest                 0.6.34      2024-01-11 [1] CRAN (R 4.3.2)
+ doParallel             1.0.17      2022-02-07 [1] CRAN (R 4.3.2)
+ doubletrouble        * 1.3.4       2024-02-05 [1] Bioconductor
+ dplyr                * 1.1.4       2023-11-17 [1] CRAN (R 4.3.2)
+ evaluate               0.23        2023-11-01 [1] CRAN (R 4.3.2)
+ fansi                  1.0.6       2023-12-08 [1] CRAN (R 4.3.2)
+ fastmap                1.1.1       2023-02-24 [1] CRAN (R 4.3.2)
+ filelock               1.0.3       2023-12-11 [1] CRAN (R 4.3.2)
+ forcats              * 1.0.0       2023-01-29 [1] CRAN (R 4.3.2)
+ foreach                1.5.2       2022-02-02 [1] CRAN (R 4.3.2)
+ generics               0.1.3       2022-07-05 [1] CRAN (R 4.3.2)
+ GenomeInfoDb           1.38.6      2024-02-08 [1] Bioconductor 3.18 (R 4.3.2)
+ GenomeInfoDbData       1.2.11      2023-12-21 [1] Bioconductor
+ GenomicAlignments      1.38.2      2024-01-16 [1] Bioconductor 3.18 (R 4.3.2)
+ GenomicFeatures        1.54.3      2024-01-31 [1] Bioconductor 3.18 (R 4.3.2)
+ GenomicRanges          1.54.1      2023-10-29 [1] Bioconductor
+ ggnetwork              0.5.13      2024-02-14 [1] CRAN (R 4.3.2)
+ ggplot2              * 3.5.0       2024-02-23 [1] CRAN (R 4.3.2)
+ glue                   1.7.0       2024-01-09 [1] CRAN (R 4.3.2)
+ gtable                 0.3.4       2023-08-21 [1] CRAN (R 4.3.2)
+ here                 * 1.0.1       2020-12-13 [1] CRAN (R 4.3.2)
+ hms                    1.1.3       2023-03-21 [1] CRAN (R 4.3.2)
+ htmltools              0.5.7       2023-11-03 [1] CRAN (R 4.3.2)
+ htmlwidgets            1.6.4       2023-12-06 [1] CRAN (R 4.3.2)
+ httr                   1.4.7       2023-08-15 [1] CRAN (R 4.3.2)
+ igraph                 2.0.1.1     2024-01-30 [1] CRAN (R 4.3.2)
+ intergraph             2.0-4       2024-02-01 [1] CRAN (R 4.3.2)
+ IRanges                2.36.0      2023-10-24 [1] Bioconductor
+ iterators              1.0.14      2022-02-05 [1] CRAN (R 4.3.2)
+ jsonlite               1.8.8       2023-12-04 [1] CRAN (R 4.3.2)
+ KEGGREST               1.42.0      2023-10-24 [1] Bioconductor
+ knitr                  1.45        2023-10-30 [1] CRAN (R 4.3.2)
+ lattice                0.22-5      2023-10-24 [4] CRAN (R 4.3.1)
+ lifecycle              1.0.4       2023-11-07 [1] CRAN (R 4.3.2)
+ lubridate            * 1.9.3       2023-09-27 [1] CRAN (R 4.3.2)
+ magrittr               2.0.3       2022-03-30 [1] CRAN (R 4.3.2)
+ MASS                   7.3-60      2023-05-04 [4] CRAN (R 4.3.1)
+ Matrix                 1.6-3       2023-11-14 [4] CRAN (R 4.3.2)
+ MatrixGenerics         1.14.0      2023-10-24 [1] Bioconductor
+ matrixStats            1.2.0       2023-12-11 [1] CRAN (R 4.3.2)
+ mclust                 6.0.1       2023-11-15 [1] CRAN (R 4.3.2)
+ memoise                2.0.1       2021-11-26 [1] CRAN (R 4.3.2)
+ MSA2dist               1.7.3       2024-03-14 [1] gitlab (mpievolbio-it/msa2dist@7558ab2)
+ munsell                0.5.0       2018-06-12 [1] CRAN (R 4.3.2)
+ network                1.18.2      2023-12-05 [1] CRAN (R 4.3.2)
+ networkD3              0.4         2017-03-18 [1] CRAN (R 4.3.2)
+ nlme                   3.1-163     2023-08-09 [4] CRAN (R 4.3.1)
+ patchwork            * 1.2.0       2024-01-08 [1] CRAN (R 4.3.2)
+ pheatmap               1.0.12      2019-01-04 [1] CRAN (R 4.3.2)
+ pillar                 1.9.0       2023-03-22 [1] CRAN (R 4.3.2)
+ pkgconfig              2.0.3       2019-09-22 [1] CRAN (R 4.3.2)
+ png                    0.1-8       2022-11-29 [1] CRAN (R 4.3.2)
+ prettyunits            1.2.0       2023-09-24 [1] CRAN (R 4.3.2)
+ progress               1.2.3       2023-12-06 [1] CRAN (R 4.3.2)
+ purrr                * 1.0.2       2023-08-10 [1] CRAN (R 4.3.2)
+ R6                     2.5.1       2021-08-19 [1] CRAN (R 4.3.2)
+ rappdirs               0.3.3       2021-01-31 [1] CRAN (R 4.3.2)
+ RColorBrewer           1.1-3       2022-04-03 [1] CRAN (R 4.3.2)
+ Rcpp                   1.0.12      2024-01-09 [1] CRAN (R 4.3.2)
+ RCurl                  1.98-1.14   2024-01-09 [1] CRAN (R 4.3.2)
+ readr                * 2.1.5       2024-01-10 [1] CRAN (R 4.3.2)
+ restfulr               0.0.15      2022-06-16 [1] CRAN (R 4.3.2)
+ rjson                  0.2.21      2022-01-09 [1] CRAN (R 4.3.2)
+ rlang                  1.1.3       2024-01-10 [1] CRAN (R 4.3.2)
+ rmarkdown              2.25        2023-09-18 [1] CRAN (R 4.3.2)
+ rprojroot              2.0.4       2023-11-05 [1] CRAN (R 4.3.2)
+ Rsamtools              2.18.0      2023-10-24 [1] Bioconductor
+ RSQLite                2.3.5       2024-01-21 [1] CRAN (R 4.3.2)
+ rstudioapi             0.15.0      2023-07-07 [1] CRAN (R 4.3.2)
+ rtracklayer            1.62.0      2023-10-24 [1] Bioconductor
+ S4Arrays               1.2.0       2023-10-24 [1] Bioconductor
+ S4Vectors              0.40.2      2023-11-23 [1] Bioconductor 3.18 (R 4.3.2)
+ scales                 1.3.0       2023-11-28 [1] CRAN (R 4.3.2)
+ seqinr                 4.2-36      2023-12-08 [1] CRAN (R 4.3.2)
+ sessioninfo            1.2.2       2021-12-06 [1] CRAN (R 4.3.2)
+ SparseArray            1.2.4       2024-02-11 [1] Bioconductor 3.18 (R 4.3.2)
+ statnet.common         4.9.0       2023-05-24 [1] CRAN (R 4.3.2)
+ stringi                1.8.3       2023-12-11 [1] CRAN (R 4.3.2)
+ stringr              * 1.5.1       2023-11-14 [1] CRAN (R 4.3.2)
+ SummarizedExperiment   1.32.0      2023-10-24 [1] Bioconductor
+ syntenet               1.4.0       2023-10-24 [1] Bioconductor
+ tibble               * 3.2.1       2023-03-20 [1] CRAN (R 4.3.2)
+ tidyr                * 1.3.1       2024-01-24 [1] CRAN (R 4.3.2)
+ tidyselect             1.2.0       2022-10-10 [1] CRAN (R 4.3.2)
+ tidyverse            * 2.0.0       2023-02-22 [1] CRAN (R 4.3.2)
+ timechange             0.3.0       2024-01-18 [1] CRAN (R 4.3.2)
+ tzdb                   0.4.0       2023-05-12 [1] CRAN (R 4.3.2)
+ utf8                   1.2.4       2023-10-22 [1] CRAN (R 4.3.2)
+ vctrs                  0.6.5       2023-12-01 [1] CRAN (R 4.3.2)
+ withr                  3.0.0       2024-01-16 [1] CRAN (R 4.3.2)
+ xfun                   0.42        2024-02-08 [1] CRAN (R 4.3.2)
+ XML                    3.99-0.16.1 2024-01-22 [1] CRAN (R 4.3.2)
+ xml2                   1.3.6       2023-12-04 [1] CRAN (R 4.3.2)
+ XVector                0.42.0      2023-10-24 [1] Bioconductor
+ yaml                   2.3.8       2023-12-11 [1] CRAN (R 4.3.2)
+ zlibbioc               1.48.0      2023-10-24 [1] Bioconductor
 
  [1] /home/faalm/R/x86_64-pc-linux-gnu-library/4.3
  [2] /usr/local/lib/R/site-library
@@ -602,6 +873,24 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     // clear code selection
     e.clearSelection();
   });
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
   function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
     const config = {
       allowHTML: true,
@@ -636,7 +925,11 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       try { href = new URL(href).hash; } catch {}
       const id = href.replace(/^#\/?/, "");
       const note = window.document.getElementById(id);
-      return note.innerHTML;
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
     });
   }
   const xrefs = window.document.querySelectorAll('a.quarto-xref');
