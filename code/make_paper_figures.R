@@ -56,7 +56,7 @@ fig_1b
 load(here("products", "result_files", "benchmark_kaks.rda"))
 
 fig_1c <- ggplot(
-    benchmark_kaks, aes(x = Time_minutes, y = Back.end)
+    benchmark_kaks, aes(x = Time_minutes, y = Threads)
 ) +
     geom_bar(stat = "identity", fill = "dodgerblue4", color = "black") +
     geom_text(
@@ -64,7 +64,7 @@ fig_1c <- ggplot(
         hjust = -0.1
     ) +
     labs(
-        x = "Time (in minutes)", y = "BiocParallel back-end",
+        x = "Time (in minutes)", y = "Number of threads",
         title = "Runtime benchmark for *pairs2kaks()*",
         subtitle = "*S. cerevisiae* paranome; *N* = 3588 gene pairs"
     ) +
@@ -75,7 +75,7 @@ fig_1c <- ggplot(
         plot.subtitle = ggtext::element_markdown()
     ) +
     scale_x_continuous(
-        limits = c(0, 60), breaks = seq(0, 60, by = 10), expand = c(0, 0)
+        limits = c(0, 10), breaks = seq(0, 10, by = 2), expand = c(0, 0)
     )
 
 fig_1c

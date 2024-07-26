@@ -158,46 +158,45 @@ scerevisiae_cds <- get_cds_ensembl("saccharomyces_cerevisiae", "fungi")
 Now, we can do the benchmark. 
 
 ```{r}
-# Parallel back-end: SerialParam (1 thread)
+# 1 thread
 start <- Sys.time()
 kaks <- pairs2kaks(
     scerevisiae_pairs, 
     scerevisiae_cds,
-    bp_param = BiocParallel::SerialParam()
+    threads = 1
 )
 end <- Sys.time()
-runtime_serial <- end - start
+runtime1 <- end - start
 
-# Parallel back-end: SnowParam, 4 threads
+# 4 threads
 start <- Sys.time()
 kaks <- pairs2kaks(
     scerevisiae_pairs, 
     scerevisiae_cds,
-    bp_param = BiocParallel::SnowParam(workers = 4)
+    threads = 4
 )
 end <- Sys.time()
-runtime_snow4 <- end - start
+runtime4 <- end - start
 
-# Parallel back-end: SnowParam, 8 threads
+# 8 threads
 start <- Sys.time()
 kaks <- pairs2kaks(
     scerevisiae_pairs, 
     scerevisiae_cds,
-    bp_param = BiocParallel::SnowParam(workers = 8)
+    threads = 8
 )
 end <- Sys.time()
-runtime_snow8 <- end - start
+runtime8 <- end - start
 
 # Summarize results in a table
 benchmark_kaks <- data.frame(
-    `Back-end` = c("Serial", "Snow, 4 threads", "Snow, 8 threads"),
-    Time_minutes = as.numeric(c(runtime_serial, runtime_snow4, runtime_snow8))
+    Threads = factor(c(1, 4, 8)),
+    Time_minutes = as.numeric(c(runtime1, runtime4, runtime8))
 ) |>
     dplyr::mutate(
         Pairs_per_minute = nrow(scerevisiae_pairs[[1]]) / Time_minutes,
         Pairs_per_second = nrow(scerevisiae_pairs[[1]]) / (Time_minutes * 60)
     )
-
 save(
     benchmark_kaks, compress = "xz",
     file = here("products", "result_files", "benchmark_kaks.rda")
